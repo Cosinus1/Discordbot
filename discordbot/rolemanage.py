@@ -7,7 +7,8 @@ import sqlite3
 #PATH
 
 # Configuration
-TOKEN = 'MTM0NDY2OTk0MzcwMTk2Njg2OQ.GDS6aU.XsERoAl7NxUuQcbsqjyEZnya6zKs1NS1bhZycI'
+with open("token.txt", "r") as file:
+	TOKEN = file.read().strip() 
 EXP_PAR_MESSAGE = 10  # Experience gained per message
 EXP_PAR_MINUTE_VOCAL = 5  # Experience gained per minute in voice
 EXP_POUR_CHEVALIER = 700  # Experience required to become Chevalier
@@ -202,7 +203,7 @@ async def on_voice_state_update(member, before, after):
                 update_user_data(user_id, exp=user["exp"], daily_exp=user["daily_exp"], last_activity=user["last_activity"], last_exp_gain_date=user["last_exp_gain_date"])
 
                 # Print the experience gain log
-                print(f"{member.name} ({member.id}) gained {exp_gain} XP after leaving the voice channel.")
+                send_to_bot_channel(member.guild, f"{member.name} ({member.id}) gained {exp_gain} XP after leaving the voice channel.")
 
         await check_role_upgrade(member)
 
