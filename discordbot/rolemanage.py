@@ -16,7 +16,7 @@ EXP_POUR_BARON = 1400
 EXP_POUR_DUC = 2100
 INACTIVITE_JOURS = 7  # Days of inactivity before reverting to Gueux
 LEVEL_THRESHOLD = 100  # Experience required to level up
-DAILY_EXP_THRESHOLD = 10000  # Maximum experience a user can gain per day
+DAILY_EXP_THRESHOLD = 100  # Maximum experience a user can gain per day
 
 # Intents
 intents = discord.Intents.default()
