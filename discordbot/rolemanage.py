@@ -4,11 +4,10 @@ from datetime import datetime
 import asyncio
 import sqlite3
 
-#PATH
-
 # Configuration
 with open("token.txt", "r") as file:
-	TOKEN = file.read().strip() 
+    TOKEN = file.read().strip()
+
 EXP_PAR_MESSAGE = 10  # Experience gained per message
 EXP_PAR_MINUTE_VOCAL = 5  # Experience gained per minute in voice
 EXP_POUR_CHEVALIER = 700  # Experience required to become Chevalier
@@ -37,7 +36,7 @@ def init_db():
             level INTEGER DEFAULT 0,
             last_activity TEXT,
             role TEXT DEFAULT 'Gueux',
-            last_exp_gain_date TEXT,  
+            last_exp_gain_date TEXT,
             daily_exp INTEGER DEFAULT 0
         )
     ''')
@@ -60,8 +59,8 @@ def get_user_data(user_id):
             "level": user[2],
             "last_activity": datetime.fromisoformat(user[3]),
             "role": user[4],
-            "last_exp_gain_date": datetime.fromisoformat(user[5]) if user[5] else None,  # New field
-            "daily_exp": user[6]  # New field
+            "last_exp_gain_date": datetime.fromisoformat(user[5]) if user[5] else None,
+            "daily_exp": user[6]
         }
     return None
 
@@ -69,7 +68,6 @@ def update_user_data(user_id, exp=None, level=None, last_activity=None, role=Non
     conn = sqlite3.connect('user_data.db')
     c = conn.cursor()
     if get_user_data(user_id):
-        # Update existing user
         updates = []
         params = []
         if exp is not None:
@@ -93,7 +91,6 @@ def update_user_data(user_id, exp=None, level=None, last_activity=None, role=Non
         params.append(user_id)
         c.execute(f'UPDATE users SET {", ".join(updates)} WHERE user_id = ?', params)
     else:
-        # Insert new user
         c.execute('''
             INSERT INTO users (user_id, exp, level, last_activity, role, last_exp_gain_date, daily_exp)
             VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -101,35 +98,13 @@ def update_user_data(user_id, exp=None, level=None, last_activity=None, role=Non
     conn.commit()
     conn.close()
 
-# Function to get the "Gueux" role
-async def get_role_Gueux(guild):
-    role_Gueux = discord.utils.get(guild.roles, name="Gueux")
-    if not role_Gueux:
-        role_Gueux = await guild.create_role(name="Gueux", color=discord.Color.dark_grey())
-        await send_to_bot_channel(guild, "Rôle 'Gueux' créé.")
-    return role_Gueux
-
-# Function to get the "Chevalier" role
-async def get_role_Chevalier(guild):
-    role_Chevalier = discord.utils.get(guild.roles, name="Chevalier")
-    if not role_Chevalier:
-        role_Chevalier = await guild.create_role(name="Chevalier", color=discord.Color.gold())
-        await send_to_bot_channel(guild, "Rôle 'Chevalier' créé.")
-    return role_Chevalier
-
-async def get_role_Baron(guild):
-    role_Baron = discord.utils.get(guild.roles, name="Baron")
-    if not role_Baron:
-        role_Baron = await guild.create_role(name="Baron", color=discord.Color.purple())
-        await send_to_bot_channel(guild, "Rôle 'Baron' créé.")
-    return role_Baron
-
-async def get_role_Duc(guild):
-    role_Duc = discord.utils.get(guild.roles, name="Duc")
-    if not role_Duc:
-        role_Duc = await guild.create_role(name="Duc", color=discord.Color.dark_blue())
-        await send_to_bot_channel(guild, "Rôle 'Duc' créé.")
-    return role_Duc
+# Function to get a role by name, creating it if it doesn't exist
+async def get_or_create_role(guild, role_name, color):
+    role = discord.utils.get(guild.roles, name=role_name)
+    if not role:
+        role = await guild.create_role(name=role_name, color=color)
+        await send_to_bot_channel(guild, f"Rôle '{role_name}' créé.")
+    return role
 
 # Function to send a message to the "bot" channel
 async def send_to_bot_channel(guild, message):
@@ -143,7 +118,7 @@ async def send_to_bot_channel(guild, message):
 @bot.event
 async def on_member_join(member):
     guild = member.guild
-    role_Gueux = await get_role_Gueux(guild)
+    role_Gueux = await get_or_create_role(guild, "Gueux", discord.Color.dark_grey())
     await member.add_roles(role_Gueux)
     update_user_data(member.id, role='Gueux')
     await send_to_bot_channel(guild, f"{member.name} a reçu le rôle Gueux.")
@@ -173,40 +148,32 @@ async def on_voice_state_update(member, before, after):
 
     # Check if the last experience gain was on a different day
     if user["last_exp_gain_date"].date() != datetime.now().date():
-        # Reset daily experience for the new day
         user["daily_exp"] = 0
         user["last_exp_gain_date"] = datetime.now()
 
     # When the user joins a voice channel
     if after.channel and not before.channel:
-        start_time = datetime.now()  # Timestamp when they joined the channel
-        user_join_times[user_id] = start_time  # Store the join time for the user
+        user_join_times[user_id] = datetime.now()
 
     # When the user leaves a voice channel
     if before.channel and not after.channel:
         if user_id in user_join_times:
-            time_spent = (datetime.now() - user_join_times[user_id]).total_seconds() / 60  # Time spent in the channel in minutes
-            del user_join_times[user_id]  # Remove the user from the join times dictionary after they leave
+            time_spent = (datetime.now() - user_join_times[user_id]).total_seconds() / 60
+            del user_join_times[user_id]
 
             if user["daily_exp"] < DAILY_EXP_THRESHOLD:
-                # Calculate experience gained based on time spent in the channel
                 remaining_exp = DAILY_EXP_THRESHOLD - user["daily_exp"]
                 exp_gain = min(EXP_PAR_MINUTE_VOCAL * time_spent, remaining_exp)
-
-                # Round the experience gain to an integer
                 exp_gain = int(exp_gain)
 
-                # Update user data with the new experience gained
                 user["exp"] += exp_gain
                 user["daily_exp"] += exp_gain
                 user["last_activity"] = datetime.now()
                 update_user_data(user_id, exp=user["exp"], daily_exp=user["daily_exp"], last_activity=user["last_activity"], last_exp_gain_date=user["last_exp_gain_date"])
 
-                # Print the experience gain log
-                send_to_bot_channel(member.guild, f"{member.name} ({member.id}) gained {exp_gain} XP after leaving the voice channel.")
+                await send_to_bot_channel(member.guild, f"{member.name} ({member.id}) gained {exp_gain} XP after leaving the voice channel.")
 
         await check_role_upgrade(member)
-
 
 # Check if a user should be promoted
 async def check_role_upgrade(member):
@@ -215,25 +182,21 @@ async def check_role_upgrade(member):
         return
 
     guild = member.guild
-    role_Gueux = await get_role_Gueux(guild)
-    role_Chevalier = await get_role_Chevalier(guild)
-    role_Baron = await get_role_Baron(guild)
-    role_Duc = await get_role_Duc(guild)
+    role_Gueux = await get_or_create_role(guild, "Gueux", discord.Color.dark_grey())
+    role_Chevalier = await get_or_create_role(guild, "Chevalier", discord.Color.gold())
+    role_Baron = await get_or_create_role(guild, "Baron", discord.Color.purple())
+    role_Duc = await get_or_create_role(guild, "Duc", discord.Color.dark_blue())
     
-    #Upgrade to Chevalier
     if user["exp"] >= EXP_POUR_CHEVALIER and user["role"] == "Gueux":
         await member.remove_roles(role_Gueux)
         await member.add_roles(role_Chevalier)
         update_user_data(member.id, role="Chevalier")
         await send_to_bot_channel(guild, f"{member.mention} a été adoubé.")
-    #Upgrade to Baron
     if user["exp"] >= EXP_POUR_BARON and user["role"] == "Chevalier":
         await member.remove_roles(role_Chevalier)
         await member.add_roles(role_Baron)
         update_user_data(member.id, role="Baron")
         await send_to_bot_channel(guild, f"{member.mention} a été promu Baron.")
-        
-    #Upgrade to Duc
     if user["exp"] >= EXP_POUR_DUC and user["role"] == "Baron":
         await member.remove_roles(role_Baron)
         await member.add_roles(role_Duc)
@@ -256,8 +219,8 @@ async def check_level_upgrade(member):
 @tasks.loop(hours=24)
 async def check_inactivity():
     for guild in bot.guilds:
-        role_Gueux = await get_role_Gueux(guild)
-        role_Chevalier = await get_role_Chevalier(guild)
+        role_Gueux = await get_or_create_role(guild, "Gueux", discord.Color.dark_grey())
+        role_Chevalier = await get_or_create_role(guild, "Chevalier", discord.Color.gold())
 
         conn = sqlite3.connect('user_data.db')
         c = conn.cursor()
@@ -283,40 +246,33 @@ async def exp(ctx):
         await ctx.send(f"{ctx.author.mention}, tu as actuellement {current_exp} XP. Il te faut {next_level_exp - current_exp} XP pour atteindre le prochain niveau !")
     else:
         await ctx.send(f"{ctx.author.mention}, aucune donnée trouvée pour toi.")
-        
-# Function to print the `user_join_times` dictionary
+
 @bot.command()
 async def expvoice(ctx):
-    # Show user join times
     await ctx.send(f"Current user join times in voice channels: {user_join_times}")
     print(user_join_times)
 
-# Function to safely stop the bot and distribute the experience
 @bot.command()
 async def bye(ctx):
-    if 'dev' in [role.name.lower() for role in ctx.author.roles]:  # Check if the user has the 'dev' role
+    if 'dev' in [role.name.lower() for role in ctx.author.roles]:
         await ctx.send("Miaou ! Zzzzz....")
 
-        # Distribute the experience based on the time spent in voice channels
         for user_id, join_time in user_join_times.items():
             user = get_user_data(user_id)
             if user:
-                time_spent = (datetime.now() - join_time).total_seconds() / 60  # Time spent in the channel in minutes
+                time_spent = (datetime.now() - join_time).total_seconds() / 60
                 if user["daily_exp"] < DAILY_EXP_THRESHOLD:
                     remaining_exp = DAILY_EXP_THRESHOLD - user["daily_exp"]
                     exp_gain = min(EXP_PAR_MINUTE_VOCAL * time_spent, remaining_exp)
                     exp_gain = int(exp_gain)
 
-                    # Update user data with the new experience gained
                     user["exp"] += exp_gain
                     user["daily_exp"] += exp_gain
                     user["last_activity"] = datetime.now()
                     update_user_data(user_id, exp=user["exp"], daily_exp=user["daily_exp"], last_activity=user["last_activity"], last_exp_gain_date=user["last_exp_gain_date"])
 
-                    # Print the experience gain log
                     print(f"{user_id} gained {exp_gain} XP after leaving the voice channel.")
         
-        # Shutting down the bot safely
         await bot.close()
     else:
         await ctx.send("You do not have permission to stop the bot!")
@@ -324,7 +280,7 @@ async def bye(ctx):
 """ Event Functions """
 @bot.event
 async def on_message(message):
-    if message.author.bot:  # Ignore messages from bots
+    if message.author.bot:
         return
 
     user_id = message.author.id
@@ -341,19 +297,14 @@ async def on_message(message):
         }
         update_user_data(**user)
 
-    # Check if the last experience gain was on a different day
-    if user["last_exp_gain_date"].date() != datetime.now().date():
-        # Reset daily experience for the new day
+    if user["last_exp_gain_date"].date().day != datetime.now().date().day:
         user["daily_exp"] = 0
         user["last_exp_gain_date"] = datetime.now()
 
-    # Check if the user has reached the daily experience threshold
     if user["daily_exp"] < DAILY_EXP_THRESHOLD:
-        # Calculate the remaining experience the user can gain today
         remaining_exp = DAILY_EXP_THRESHOLD - user["daily_exp"]
         exp_gain = min(EXP_PAR_MESSAGE, remaining_exp)
 
-        # Update user data
         user["exp"] += exp_gain
         user["daily_exp"] += exp_gain
         user["last_activity"] = datetime.now()
@@ -361,7 +312,7 @@ async def on_message(message):
                  
     await check_role_upgrade(message.author)
     await check_level_upgrade(message.author)
-    await bot.process_commands(message)  # Allow other commands to work
+    await bot.process_commands(message)
     
     if message.author.bot:
         return
@@ -375,24 +326,18 @@ async def on_message(message):
         emoji = discord.utils.get(message.guild.emojis, name="Chat_Cosi")
         await message.channel.send(f"feur {emoji}")
     
-        
     if message.content.lower() == 'wiwiwi':
-        # Send the GIF as an attachment
         await message.channel.send("wiwiwi", file=discord.File("wiwiwi.gif"))
             
     if bot.user in message.mentions:
         await message.channel.send("miaou")
-    #await bot.process_commands(message)
-
-    
-""" //////////////// """
 
 async def fetch_and_store_data(guild):
     for member in guild.members:
-        if not member.bot:  # Ignore bots
+        if not member.bot:
             user = get_user_data(member.id)
 
-            if not user:  # If user is not in the database, add them
+            if not user:
                 user_role = member.top_role.name if member.top_role != guild.default_role else 'Gueux'
                 update_user_data(
                     user_id=member.id,
@@ -401,17 +346,14 @@ async def fetch_and_store_data(guild):
                     last_activity=datetime.now(),
                     role=user_role,
                     last_exp_gain_date=datetime.now(),
-                    daily_exp=0,
-                    last_voice_channel_time=datetime.now() if member.voice else None  # Store the time if user is in a voice channel
+                    daily_exp=0
                 )
                 print(f"{member.name} a été ajouté à la base de données avec le rôle '{user_role}'.")
 
-                # If the user is already in a voice channel, store the join time
                 if member.voice:
-                    user_join_times[member.id] = datetime.now()  # Store the time they joined
+                    user_join_times[member.id] = datetime.now()
 
             else:
-                # If the user is in a voice channel when the bot starts, store their join time
                 if member.voice:
                     user_join_times[member.id] = datetime.now()
 
