@@ -1,3 +1,6 @@
 nohup.out
 token.txt
 venv/
+user_data.db
+ssh_key
+ssh_key.pub
