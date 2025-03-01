@@ -111,10 +111,11 @@ def update_user_data(user_id, exp=None, level=None, last_activity=None, role=Non
 
 # Function to call the DeepSeek API
 def get_deepseek_response(message_content, author):
-    if 'dev' in [role.name.lower() for role in author.roles]:
+    """if 'dev' in [role.name.lower() for role in author.roles]:
         MAX_TOKENS = 1000
     else :
-        MAX_TOKENS = 100
+        MAX_TOKENS = 100"""
+    MAX_TOKENS = 1000
     headers = {
         "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
         "Content-Type": "application/json"
@@ -376,7 +377,7 @@ async def on_message(message):
         message_content = message.content.replace(f"<@{bot.user.id}>", "").strip()
         
         # Get a response from DeepSeek
-        response = get_deepseek_response(message_content, user)
+        response = get_deepseek_response(message_content, message.author)
         
         # Send the response back to the channel
         await message.channel.send(response)
