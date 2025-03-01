@@ -110,30 +110,24 @@ def update_user_data(user_id, exp=None, level=None, last_activity=None, role=Non
     conn.close()
 
 # Function to call the DeepSeek API
-def get_deepseek_response(message_content):
+def get_deepseek_response(message_content, author):
+    if 'dev' in [role.name.lower() for role in author.roles]:
+        MAX_TOKENS = 1000
+    else :
+        MAX_TOKENS = 100
     headers = {
         "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
         "Content-Type": "application/json"
     }
     data = {
-        "model": "deepseek-chat",  # Replace with the correct model name
+        "model": "deepseek-chat",
         "messages": [{"role": "user", "content": message_content}],
-        "max_tokens": 100  # Adjust as needed
+        "max_tokens": MAX_TOKENS  
     }
-
-    # Print the request payload for debugging
-    print("Sending request to DeepSeek API with payload:")
-    print(f"Headers: {headers}")
-    print(f"Data: {data}")
 
     try:
         # Send the request to the API
         response = requests.post(DEEPSEEK_API_URL, headers=headers, json=data)
-
-        # Print the API response for debugging
-        print("Received response from DeepSeek API:")
-        print(f"Status Code: {response.status_code}")
-        print(f"Response Content: {response.text}")
 
         # Check if the request was successful
         if response.status_code == 200:
@@ -382,7 +376,7 @@ async def on_message(message):
         message_content = message.content.replace(f"<@{bot.user.id}>", "").strip()
         
         # Get a response from DeepSeek
-        response = get_deepseek_response(message_content)
+        response = get_deepseek_response(message_content, user)
         
         # Send the response back to the channel
         await message.channel.send(response)
