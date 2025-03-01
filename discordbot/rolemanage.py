@@ -120,11 +120,30 @@ def get_deepseek_response(message_content):
         "messages": [{"role": "user", "content": message_content}],
         "max_tokens": 100  # Adjust as needed
     }
-    response = requests.post(DEEPSEEK_API_URL, headers=headers, json=data)
-    if response.status_code == 200:
-        return response.json()["choices"][0]["message"]["content"]
-    else:
-        return "Désolé, je n'ai pas pu comprendre votre message."
+
+    # Print the request payload for debugging
+    print("Sending request to DeepSeek API with payload:")
+    print(f"Headers: {headers}")
+    print(f"Data: {data}")
+
+    try:
+        # Send the request to the API
+        response = requests.post(DEEPSEEK_API_URL, headers=headers, json=data)
+
+        # Print the API response for debugging
+        print("Received response from DeepSeek API:")
+        print(f"Status Code: {response.status_code}")
+        print(f"Response Content: {response.text}")
+
+        # Check if the request was successful
+        if response.status_code == 200:
+            return response.json()["choices"][0]["message"]["content"]
+        else:
+            return f"Désolé, je n'ai pas pu comprendre votre message. (Status Code: {response.status_code})"
+    except Exception as e:
+        # Print any exceptions that occur
+        print(f"An error occurred while calling the DeepSeek API: {e}")
+        return "Désolé, une erreur s'est produite lors de la communication avec l'API."
 
 # Function to get a role by name, creating it if it doesn't exist
 async def get_or_create_role(guild, role_name, color):
