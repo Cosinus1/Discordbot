@@ -126,22 +126,6 @@ def get_deepseek_response(message_content):
     else:
         return "Désolé, je n'ai pas pu comprendre votre message."
 
-
-# Event: When the bot is mentioned
-@bot.event
-async def on_message(message):
-    if bot.user in message.mentions:
-        # Extract the message content without the mention
-        message_content = message.content.replace(f"<@{bot.user.id}>", "").strip()
-        
-        # Get a response from DeepSeek
-        response = get_deepseek_response(message_content)
-        
-        # Send the response back to the channel
-        await message.channel.send(response)
-    
-    # Allow other commands to work
-    await bot.process_commands(message)
 # Function to get a role by name, creating it if it doesn't exist
 async def get_or_create_role(guild, role_name, color):
     role = discord.utils.get(guild.roles, name=role_name)
@@ -372,9 +356,20 @@ async def on_message(message):
     
     if message.content.lower() == 'wiwiwi':
         await message.channel.send("wiwiwi", file=discord.File("wiwiwi.gif"))
-            
+    
+    #Deepseek response to bot mention
     if bot.user in message.mentions:
-        await message.channel.send("miaou")
+        # Extract the message content without the mention
+        message_content = message.content.replace(f"<@{bot.user.id}>", "").strip()
+        
+        # Get a response from DeepSeek
+        response = get_deepseek_response(message_content)
+        
+        # Send the response back to the channel
+        await message.channel.send(response)
+    
+    # Allow other commands to work
+    await bot.process_commands(message)
 
 async def fetch_and_store_data(guild):
     for member in guild.members:
