@@ -3,10 +3,21 @@ from discord.ext import commands, tasks
 from datetime import datetime
 import asyncio
 import sqlite3
+import requests
+from google.cloud import secretmanager
 
 # Configuration
 with open("token.txt", "r") as file:
     TOKEN = file.read().strip()
+
+def get_deepseek_api_key():
+    client = secretmanager.SecretManagerServiceClient()
+    name = "projects/discordbot-452223/secrets/deepseek-api-key/versions/latest"
+    response = client.access_secret_version(request={"name": name})
+    return response.payload.data.decode("UTF-8")
+
+DEEPSEEK_API_KEY = get_deepseek_api_key()  # Store your API key in an environment variable
+DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"  # API endpoint
 
 EXP_PAR_MESSAGE = 10  # Experience gained per message
 EXP_PAR_MINUTE_VOCAL = 5  # Experience gained per minute in voice
@@ -98,6 +109,39 @@ def update_user_data(user_id, exp=None, level=None, last_activity=None, role=Non
     conn.commit()
     conn.close()
 
+# Function to call the DeepSeek API
+def get_deepseek_response(message_content):
+    headers = {
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "model": "deepseek-chat",  # Replace with the correct model name
+        "messages": [{"role": "user", "content": message_content}],
+        "max_tokens": 100  # Adjust as needed
+    }
+    response = requests.post(DEEPSEEK_API_URL, headers=headers, json=data)
+    if response.status_code == 200:
+        return response.json()["choices"][0]["message"]["content"]
+    else:
+        return "Désolé, je n'ai pas pu comprendre votre message."
+
+
+# Event: When the bot is mentioned
+@bot.event
+async def on_message(message):
+    if bot.user in message.mentions:
+        # Extract the message content without the mention
+        message_content = message.content.replace(f"<@{bot.user.id}>", "").strip()
+        
+        # Get a response from DeepSeek
+        response = get_deepseek_response(message_content)
+        
+        # Send the response back to the channel
+        await message.channel.send(response)
+    
+    # Allow other commands to work
+    await bot.process_commands(message)
 # Function to get a role by name, creating it if it doesn't exist
 async def get_or_create_role(guild, role_name, color):
     role = discord.utils.get(guild.roles, name=role_name)
