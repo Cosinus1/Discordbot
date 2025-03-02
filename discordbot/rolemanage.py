@@ -308,7 +308,7 @@ async def exp(ctx):
     if user:
         current_exp = user["exp"]
         next_level_exp = (user["level"] + 1) * LEVEL_THRESHOLD
-        await ctx.send(f"{ctx.author.mention}, tu as actuellement {current_exp} XP. Il te faut {next_level_exp - current_exp} XP pour atteindre le prochain niveau ! \n (daily exp remaining : {user['daily_exp']}/{DAILY_EXP_THRESHOLD}" )
+        await ctx.send(f"{ctx.author.mention}, tu as actuellement {current_exp} XP. Il te faut {next_level_exp - current_exp} XP pour atteindre le prochain niveau ! \n (daily exp : {user['daily_exp']}/{DAILY_EXP_THRESHOLD})" )
     else:
         await ctx.send(f"{ctx.author.mention}, aucune donnée trouvée pour toi.")
 
