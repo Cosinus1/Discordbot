@@ -78,6 +78,11 @@ def get_user_data(user_id):
     user = c.fetchone()
     conn.close()
     if user:
+        try:
+            last_daily_claim = datetime.fromisoformat(user[8]) if user[8] else None
+        except (TypeError, ValueError):
+            last_daily_claim = None  # Handle invalid or NULL data
+
         return {
             "user_id": user[0],
             "exp": user[1],
@@ -87,7 +92,7 @@ def get_user_data(user_id):
             "last_exp_gain_date": datetime.fromisoformat(user[5]) if user[5] else None,
             "daily_exp": user[6],
             "money": user[7] if user[7] is not None else 0,  # Handle NULL values
-            "last_daily_claim": datetime.fromisoformat(user[8]) if user[8] else None
+            "last_daily_claim": last_daily_claim  # Handle invalid or NULL data
         }
     return None
 
@@ -118,7 +123,7 @@ def update_user_data(user_id, exp=None, level=None, last_activity=None, role=Non
         if money is not None:
             updates.append("money = ?")
             params.append(money)
-        if last_daily_claim is not None:  # New field
+        if last_daily_claim is not None:
             updates.append("last_daily_claim = ?")
             params.append(last_daily_claim.isoformat())
         params.append(user_id)
@@ -127,7 +132,17 @@ def update_user_data(user_id, exp=None, level=None, last_activity=None, role=Non
         c.execute('''
             INSERT INTO users (user_id, exp, level, last_activity, role, last_exp_gain_date, daily_exp, money, last_daily_claim)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (user_id, exp or 0, level or 0, last_activity.isoformat(), role or 'Gueux', last_exp_gain_date.isoformat() if last_exp_gain_date else None, daily_exp or 0, money or 0, last_daily_claim.isoformat() if last_daily_claim else None))
+        ''', (
+            user_id,
+            exp or 0,
+            level or 0,
+            last_activity.isoformat() if last_activity else None,
+            role or 'Gueux',
+            last_exp_gain_date.isoformat() if last_exp_gain_date else None,
+            daily_exp or 0,
+            money or 0,
+            last_daily_claim.isoformat() if last_daily_claim else None
+        ))
     conn.commit()
     conn.close()
 
@@ -531,7 +546,9 @@ async def fetch_and_store_data(guild):
                     last_activity=datetime.now(),
                     role=user_role,
                     last_exp_gain_date=datetime.now(),
-                    daily_exp=0
+                    daily_exp=0,
+                    money=0,
+                    last_daily_claim=None  # Initialize last_daily_claim
                 )
                 print(f"{member.name} a été ajouté à la base de données avec le rôle '{user_role}'.")
 
