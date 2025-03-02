@@ -50,7 +50,7 @@ def init_db():
             role TEXT DEFAULT 'Gueux',
             last_exp_gain_date TEXT,
             daily_exp INTEGER DEFAULT 0,
-            money INTEGER DEFAULT 0  -- New column
+            money INTEGER DEFAULT 0,  -- New column
             last_daily_claim TEXT  -- New column
         )
     ''')
