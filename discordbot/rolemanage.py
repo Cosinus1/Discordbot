@@ -1,10 +1,11 @@
 import discord
 from discord.ext import commands, tasks
-from datetime import datetime
+from datetime import datetime, timedelta
 import asyncio
 import sqlite3
 import requests
 from google.cloud import secretmanager
+import random
 
 # Configuration
 with open("token.txt", "r") as file:
@@ -48,9 +49,23 @@ def init_db():
             last_activity TEXT,
             role TEXT DEFAULT 'Gueux',
             last_exp_gain_date TEXT,
-            daily_exp INTEGER DEFAULT 0
+            daily_exp INTEGER DEFAULT 0,
+            money INTEGER DEFAULT 0  -- New column
+            last_daily_claim TEXT  -- New column
         )
     ''')
+    
+    # Add the last_daily_claim column if it doesn't exist
+    c.execute('PRAGMA table_info(users)')
+    columns = [column[1] for column in c.fetchall()]
+    if 'last_daily_claim' not in columns:
+        c.execute('ALTER TABLE users ADD COLUMN last_daily_claim TEXT')
+        
+    # Add the money column if it doesn't exist
+    c.execute('PRAGMA table_info(users)')
+    columns = [column[1] for column in c.fetchall()]
+    if 'money' not in columns:
+        c.execute('ALTER TABLE users ADD COLUMN money INTEGER DEFAULT 0')
     conn.commit()
     conn.close()
 
@@ -71,11 +86,13 @@ def get_user_data(user_id):
             "last_activity": datetime.fromisoformat(user[3]),
             "role": user[4],
             "last_exp_gain_date": datetime.fromisoformat(user[5]) if user[5] else None,
-            "daily_exp": user[6]
+            "daily_exp": user[6],
+            "money": user[7],
+            "last_daily_claim": datetime.fromisoformat(user[8]) if user[8] else None
         }
     return None
 
-def update_user_data(user_id, exp=None, level=None, last_activity=None, role=None, last_exp_gain_date=None, daily_exp=None):
+def update_user_data(user_id, exp=None, level=None, last_activity=None, role=None, last_exp_gain_date=None, daily_exp=None, money=None, last_daily_claim=None):
     conn = sqlite3.connect('user_data.db')
     c = conn.cursor()
     if get_user_data(user_id):
@@ -99,13 +116,19 @@ def update_user_data(user_id, exp=None, level=None, last_activity=None, role=Non
         if daily_exp is not None:
             updates.append("daily_exp = ?")
             params.append(daily_exp)
+        if money is not None:
+            updates.append("money = ?")
+            params.append(money)
+        if last_daily_claim is not None:  # New field
+            updates.append("last_daily_claim = ?")
+            params.append(last_daily_claim.isoformat())
         params.append(user_id)
         c.execute(f'UPDATE users SET {", ".join(updates)} WHERE user_id = ?', params)
     else:
         c.execute('''
-            INSERT INTO users (user_id, exp, level, last_activity, role, last_exp_gain_date, daily_exp)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (user_id, exp or 0, level or 0, last_activity.isoformat(), role or 'Gueux', last_exp_gain_date.isoformat() if last_exp_gain_date else None, daily_exp or 0))
+            INSERT INTO users (user_id, exp, level, last_activity, role, last_exp_gain_date, daily_exp, money, last_daily_claim)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (user_id, exp or 0, level or 0, last_activity.isoformat(), role or 'Gueux', last_exp_gain_date.isoformat() if last_exp_gain_date else None, daily_exp or 0, money or 0, last_daily_claim.isoformat() if last_daily_claim else None))
     conn.commit()
     conn.close()
 
@@ -183,7 +206,8 @@ async def on_voice_state_update(member, before, after):
             "last_activity": datetime.now(),
             "role": "Gueux",
             "last_exp_gain_date": datetime.now(),
-            "daily_exp": 0
+            "daily_exp": 0,
+            "money": 0
         }
         update_user_data(user_id, **user)
 
@@ -289,10 +313,116 @@ async def exp(ctx):
         await ctx.send(f"{ctx.author.mention}, aucune donnée trouvée pour toi.")
 
 @bot.command()
+async def money(ctx):
+    user = get_user_data(ctx.author.id)
+    if user:
+        await ctx.send(f"{ctx.author.mention}, you have {user['money']} $.")
+    else:
+        await ctx.send(f"{ctx.author.mention}, no data found for you.")
+
+@bot.command()
+async def bet(ctx, amount: int, choice: str):
+    # Validate the choice (head or tail)
+    choice = choice.lower()
+    if choice not in ["head", "tail"]:
+        await ctx.send(f"{ctx.author.mention}, please choose either 'head' or 'tail'.")
+        return
+
+    # Get the user's data
+    user = get_user_data(ctx.author.id)
+    if not user:
+        await ctx.send(f"{ctx.author.mention}, no data found for you.")
+        return
+
+    # Check if the user has enough money
+    if amount <= 0:
+        await ctx.send(f"{ctx.author.mention}, the bet amount must be greater than 0.")
+        return
+    if user['money'] < amount:
+        await ctx.send(f"{ctx.author.mention}, you don't have enough money to place this bet.")
+        return
+
+    # Simulate a coin flip
+    coin_flip = random.choice(["head", "tail"])
+    result_message = f"The coin landed on **{coin_flip}**."
+
+    # Determine if the user won or lost
+    if choice == coin_flip:
+        winnings = amount * 2
+        user['money'] += winnings
+        result_message += f" Congratulations, {ctx.author.mention}! You won **{winnings}** $!"
+    else:
+        user['money'] -= amount
+        result_message += f" Sorry, {ctx.author.mention}, you lost **{amount}** $."
+
+    # Update the user's money in the database
+    update_user_data(ctx.author.id, money=user['money'])
+
+    # Send the result to the user
+    await ctx.send(result_message)
+    
+@bot.command()
+async def daily(ctx):
+    user = get_user_data(ctx.author.id)
+    if not user:
+        await ctx.send(f"{ctx.author.mention}, no data found for you.")
+        return
+
+    now = datetime.now()
+    last_claim = user.get("last_daily_claim")
+
+    # Check if the user has already claimed their daily reward today
+    if last_claim and last_claim.date() == now.date():
+        next_claim_time = (last_claim + timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")
+        await ctx.send(f"{ctx.author.mention}, you have already claimed your daily reward today. You can claim again on **{next_claim_time}**.")
+        return
+
+    # Give the user 500 money
+    user['money'] += 500
+    user['last_daily_claim'] = now
+    update_user_data(ctx.author.id, money=user['money'], last_daily_claim=user['last_daily_claim'])
+
+    await ctx.send(f"{ctx.author.mention}, you claimed your daily reward of **500 $**! You now have **{user['money']} $**.")
+    
+@bot.command()
 async def expvoice(ctx):
     await ctx.send(f"Current user join times in voice channels: {user_join_times}")
     print(user_join_times)
+    
+    
+""" admin commands """
+@bot.command()
+async def admin(ctx, action: str, target: discord.Member, value: int):
+    # Check if the user has the 'dev' role
+    if 'dev' not in [role.name.lower() for role in ctx.author.roles]:
+        await ctx.send(f"{ctx.author.mention}, you do not have permission to use this command.")
+        return
 
+    # Validate the action (setlevel or setmoney)
+    action = action.lower()
+    if action not in ["setlevel", "setmoney"]:
+        await ctx.send(f"{ctx.author.mention}, invalid action. Use `setlevel` or `setmoney`.")
+        return
+
+    # Validate the value
+    if value < 0:
+        await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
+        return
+
+    # Get the target user's data
+    target_user = get_user_data(target.id)
+    if not target_user:
+        await ctx.send(f"{ctx.author.mention}, no data found for {target.mention}.")
+        return
+
+    # Update the target user's data
+    if action == "setlevel":
+        update_user_data(target.id, level=value)
+        await ctx.send(f"{ctx.author.mention}, set {target.mention}'s level to **{value}**.")
+    elif action == "setmoney":
+        update_user_data(target.id, money=value)
+        await ctx.send(f"{ctx.author.mention}, set {target.mention}'s money to **{value}**.")
+        
 @bot.command()
 async def bye(ctx):
     if 'dev' in [role.name.lower() for role in ctx.author.roles]:
@@ -334,7 +464,8 @@ async def on_message(message):
             "last_activity": datetime.now(),
             "role": "Gueux",
             "last_exp_gain_date": datetime.now(),
-            "daily_exp": 0
+            "daily_exp": 0,
+            "money": 0
         }
         update_user_data(**user)
 
