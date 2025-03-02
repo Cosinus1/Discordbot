@@ -412,6 +412,41 @@ async def daily(ctx):
     await ctx.send(f"{ctx.author.mention}, you claimed your daily reward of **500 $**! You now have **{user['money']} $**.")
     
 @bot.command()
+async def send(ctx, recipient: discord.Member, amount: int):
+    # Vérifier que le montant est positif
+    if amount <= 0:
+        await ctx.send(f"{ctx.author.mention}, le montant doit être supérieur à 0.")
+        return
+
+    # Récupérer les données de l'utilisateur actuel (expéditeur)
+    sender = get_user_data(ctx.author.id)
+    if not sender:
+        await ctx.send(f"{ctx.author.mention}, aucune donnée trouvée pour vous.")
+        return
+
+    # Vérifier que l'expéditeur a suffisamment d'argent
+    if sender['money'] < amount:
+        await ctx.send(f"{ctx.author.mention}, vous n'avez pas assez d'argent pour envoyer {amount} $.")
+        return
+
+    # Récupérer les données du destinataire
+    recipient_data = get_user_data(recipient.id)
+    if not recipient_data:
+        await ctx.send(f"{ctx.author.mention}, aucune donnée trouvée pour {recipient.mention}.")
+        return
+
+    # Retirer l'argent de l'expéditeur
+    sender['money'] -= amount
+    update_user_data(ctx.author.id, money=sender['money'])
+
+    # Ajouter l'argent au destinataire
+    recipient_data['money'] += amount
+    update_user_data(recipient.id, money=recipient_data['money'])
+
+    # Envoyer un message de confirmation
+    await ctx.send(f"{ctx.author.mention} a envoyé {amount} $ à {recipient.mention}.")
+    
+@bot.command()
 async def expvoice(ctx):
     await ctx.send(f"Current user join times in voice channels: {user_join_times}")
     print(user_join_times)
