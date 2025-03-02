@@ -445,7 +445,23 @@ async def send(ctx, recipient: discord.Member, amount: int):
 
     # Envoyer un message de confirmation
     await ctx.send(f"{ctx.author.mention} a envoyé {amount} $ à {recipient.mention}.")
-    
+
+@bot.command()
+async def roll(ctx, value):
+    try:
+        # Vérifier que le dé a au moins 2 faces
+        if value <= 2:
+            await ctx.send(f"{ctx.author.mention}, le dé doit avoir au moins 2 faces.")
+            return
+
+        # Générer un résultat aléatoire
+        result = random.randint(1, value)
+
+        # Envoyer le résultat
+        await ctx.send(f"{ctx.author.mention} a lancé un roll {value} et a obtenu : **{result}** !")
+    except Exception as e:
+        await ctx.send(f"{ctx.author.mention}, une erreur s'est produite : {e}")
+        
 @bot.command()
 async def expvoice(ctx):
     await ctx.send(f"Current user join times in voice channels: {user_join_times}")
