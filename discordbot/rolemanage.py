@@ -447,7 +447,7 @@ async def send(ctx, recipient: discord.Member, amount: int):
     await ctx.send(f"{ctx.author.mention} a envoyé {amount} $ à {recipient.mention}.")
 
 @bot.command()
-async def roll(ctx, value):
+async def roll(ctx, value: int):
     try:
         # Vérifier que le dé a au moins 2 faces
         if value <= 2:
