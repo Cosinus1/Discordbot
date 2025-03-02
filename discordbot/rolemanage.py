@@ -110,12 +110,11 @@ def update_user_data(user_id, exp=None, level=None, last_activity=None, role=Non
     conn.close()
 
 # Function to call the DeepSeek API
-def get_deepseek_response(message_content, author):
-    """if 'dev' in [role.name.lower() for role in author.roles]:
-        MAX_TOKENS = 1000
+def get_deepseek_response(message_content, user):
+    if user["role"] == "Gueux":
+        MAX_TOKENS = 100
     else :
-        MAX_TOKENS = 100"""
-    MAX_TOKENS = 1000
+        MAX_TOKENS = 1000
     headers = {
         "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
         "Content-Type": "application/json"
@@ -285,7 +284,7 @@ async def exp(ctx):
     if user:
         current_exp = user["exp"]
         next_level_exp = (user["level"] + 1) * LEVEL_THRESHOLD
-        await ctx.send(f"{ctx.author.mention}, tu as actuellement {current_exp} XP. Il te faut {next_level_exp - current_exp} XP pour atteindre le prochain niveau !")
+        await ctx.send(f"{ctx.author.mention}, tu as actuellement {current_exp} XP. Il te faut {next_level_exp - current_exp} XP pour atteindre le prochain niveau ! \n (daily exp remaining : {user['daily_exp']}/{DAILY_EXP_THRESHOLD}" )
     else:
         await ctx.send(f"{ctx.author.mention}, aucune donnée trouvée pour toi.")
 
@@ -354,7 +353,6 @@ async def on_message(message):
                  
     await check_role_upgrade(message.author)
     await check_level_upgrade(message.author)
-    await bot.process_commands(message)
     
     if message.author.bot:
         return
@@ -377,7 +375,7 @@ async def on_message(message):
         message_content = message.content.replace(f"<@{bot.user.id}>", "").strip()
         
         # Get a response from DeepSeek
-        response = get_deepseek_response(message_content, message.author)
+        response = get_deepseek_response(message_content, user)
         
         # Send the response back to the channel
         await message.channel.send(response)
