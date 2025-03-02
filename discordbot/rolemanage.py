@@ -37,10 +37,11 @@ intents.message_content = True
 # Create the bot
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Database setup
 def init_db():
     conn = sqlite3.connect('user_data.db')
     c = conn.cursor()
+
+    # Create the users table if it doesn't exist
     c.execute('''
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
@@ -51,20 +52,28 @@ def init_db():
             last_exp_gain_date TEXT,
             daily_exp INTEGER DEFAULT 0,
             money INTEGER DEFAULT 0,
-            last_daily_claim TEXT  -- New column
+            last_daily_claim TEXT
         )
     ''')
-    
-    # Add the last_daily_claim column if it doesn't exist
+
+    # Fetch the current columns in the users table
     c.execute('PRAGMA table_info(users)')
     columns = [column[1] for column in c.fetchall()]
-    if 'last_daily_claim' not in columns:
-        c.execute('ALTER TABLE users ADD COLUMN last_daily_claim TEXT')
-        
+
     # Add the money column if it doesn't exist
     if 'money' not in columns:
         c.execute('ALTER TABLE users ADD COLUMN money INTEGER DEFAULT 0')
-    
+        print("Added 'money' column to the users table.")
+
+    # Fetch the current columns again 
+    c.execute('PRAGMA table_info(users)')
+    columns = [column[1] for column in c.fetchall()]
+
+    # Add the last_daily_claim column if it doesn't exist
+    if 'last_daily_claim' not in columns:
+        c.execute('ALTER TABLE users ADD COLUMN last_daily_claim TEXT')
+        print("Added 'last_daily_claim' column to the users table.")
+
     conn.commit()
     conn.close()
 
