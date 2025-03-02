@@ -50,7 +50,7 @@ def init_db():
             role TEXT DEFAULT 'Gueux',
             last_exp_gain_date TEXT,
             daily_exp INTEGER DEFAULT 0,
-            money INTEGER DEFAULT 0,  -- New column
+            money INTEGER DEFAULT 0,
             last_daily_claim TEXT  -- New column
         )
     ''')
@@ -62,10 +62,9 @@ def init_db():
         c.execute('ALTER TABLE users ADD COLUMN last_daily_claim TEXT')
         
     # Add the money column if it doesn't exist
-    c.execute('PRAGMA table_info(users)')
-    columns = [column[1] for column in c.fetchall()]
     if 'money' not in columns:
         c.execute('ALTER TABLE users ADD COLUMN money INTEGER DEFAULT 0')
+    
     conn.commit()
     conn.close()
 
@@ -87,7 +86,7 @@ def get_user_data(user_id):
             "role": user[4],
             "last_exp_gain_date": datetime.fromisoformat(user[5]) if user[5] else None,
             "daily_exp": user[6],
-            "money": user[7],
+            "money": user[7] if user[7] is not None else 0,  # Handle NULL values
             "last_daily_claim": datetime.fromisoformat(user[8]) if user[8] else None
         }
     return None
@@ -376,6 +375,10 @@ async def daily(ctx):
         next_claim_time = (last_claim + timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")
         await ctx.send(f"{ctx.author.mention}, you have already claimed your daily reward today. You can claim again on **{next_claim_time}**.")
         return
+
+    # Ensure user['money'] is not None
+    if user['money'] is None:
+        user['money'] = 0
 
     # Give the user 500 money
     user['money'] += 500
