@@ -1,7 +1,7 @@
 import discord
 from config import bot
 from database import update_user_data
-from utils.roles import get_or_create_role, send_to_bot_channel
+from utils.roles_utils import get_or_create_role, send_to_bot_channel
 
 async def start(member):
     guild = member.guild

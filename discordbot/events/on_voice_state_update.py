@@ -1,7 +1,7 @@
 from config import bot, EXP_PAR_MINUTE_VOCAL, DAILY_EXP_THRESHOLD
 from database import get_user_data, update_user_data
 from datetime import datetime
-from utils.roles import check_role_upgrade, send_to_bot_channel
+from utils.roles_utils import check_role_upgrade, send_to_bot_channel
 
 # Dictionary to store the join time of users
 user_join_times = {}
