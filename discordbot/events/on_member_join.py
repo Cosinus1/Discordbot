@@ -3,7 +3,7 @@ from config import bot
 from database import update_user_data
 from utils.roles import get_or_create_role, send_to_bot_channel
 
-async def on_member_join(member):
+async def start(member):
     guild = member.guild
     role_Gueux = await get_or_create_role(guild, "Gueux", discord.Color.dark_grey())
     await member.add_roles(role_Gueux)
