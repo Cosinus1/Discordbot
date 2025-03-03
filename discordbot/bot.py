@@ -10,7 +10,6 @@ from commands.admin_commands import admin, bye
 init_db()
 
 # Register events
-bot.event(on_ready)
 bot.event(on_message)
 bot.event(on_member_join)
 bot.event(on_voice_state_update)

@@ -3,6 +3,7 @@ from config import bot
 from database import update_user_data, get_all_users
 from datetime import datetime
 
+@bot.event
 async def on_ready():
     print(f"Bot connecté en tant que {bot.user}")
     for guild in bot.guilds:
