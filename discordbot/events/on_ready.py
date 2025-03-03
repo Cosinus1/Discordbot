@@ -1,9 +1,8 @@
 import asyncio
-from config import bot
 from database import update_user_data, get_all_users
 from datetime import datetime
 
-async def on_ready():
+async def on_ready(bot):
     print(f"Bot connecté en tant que {bot.user}")
     for guild in bot.guilds:
         await fetch_and_store_data(guild)
