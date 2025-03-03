@@ -6,7 +6,6 @@ from utils.roles import check_role_upgrade, send_to_bot_channel
 # Dictionary to store the join time of users
 user_join_times = {}
 
-@bot.event
 async def on_voice_state_update(member, before, after):
     if member.bot:  # Ignore bots
         return

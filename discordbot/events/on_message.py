@@ -5,7 +5,6 @@ from datetime import datetime
 from utils.roles import check_role_upgrade
 from utils.exp import check_level_upgrade
 
-@bot.event
 async def on_message(message):
     if message.author.bot:
         return
