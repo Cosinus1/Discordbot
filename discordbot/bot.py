@@ -26,7 +26,7 @@ async def on_voice_state_update(member, before, after):
     await on_voice_state_update.on_voice_state_update(member, before, after)  # Call the on_voice_state_update function from the events module
 
 # Register tasks
-check_inactivity()
+check_inactivity.check_inactivity()
 
 # Register commands
 bot.add_command(user_commands.exp)
