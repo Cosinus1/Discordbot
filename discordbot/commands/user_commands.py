@@ -61,7 +61,7 @@ async def bet(ctx, amount: int, choice: str):
 
     # Determine if the user won or lost
     if choice == coin_flip:
-        winnings = amount * 2
+        winnings = amount
         user['money'] += winnings
         result_message += f" Congratulations, {ctx.author.mention}! You won **{winnings}** $!"
     else:
