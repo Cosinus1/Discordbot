@@ -6,3 +6,5 @@ init_db()
 
 # Run the bot
 bot.run(TOKEN)
+
+print(bot.all_commands)
