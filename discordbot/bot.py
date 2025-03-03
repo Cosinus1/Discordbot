@@ -3,10 +3,8 @@ from config import bot, TOKEN
 from database import init_db
 from events import on_ready as on_ready_handler, on_message as on_message_handler, on_member_join as on_member_join_handler, on_voice_state_update as on_voice_state_update_handler
 from tasks import check_inactivity
-from commands import user_commands, admin_commands
-from commands.mmo_commands.combat import attack, farm
-from commands.mmo_commands.inventory import inv, equip
-from commands.mmo_commands.shop import shop, buy, sell
+from commands import user_commands, admin_commands, mmo_commands
+
 
 # Initialize the database
 init_db()
@@ -44,13 +42,13 @@ bot.add_command(user_commands.roll)
 bot.add_command(admin_commands.admin)
 bot.add_command(admin_commands.bye)
 # MMO Commands
-bot.add_command(attack)
-bot.add_command(farm)
-bot.add_command(inv)
-bot.add_command(equip)
-bot.add_command(shop)
-bot.add_command(buy)
-bot.add_command(sell)
+bot.add_command(mmo_commands.attack)
+bot.add_command(mmo_commands.farm)
+bot.add_command(mmo_commands.inv)
+bot.add_command(mmo_commands.equip)
+bot.add_command(mmo_commands.shop)
+bot.add_command(mmo_commands.buy)
+bot.add_command(mmo_commands.sell)
 
 # Run the bot
 bot.run(TOKEN)
