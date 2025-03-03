@@ -7,7 +7,7 @@ from datetime import datetime
 from utils.roles import get_or_create_role, send_to_bot_channel
 
 @tasks.loop(hours=24)
-async def check_inactivity():
+async def start():
     for guild in bot.guilds:
         role_Gueux = await get_or_create_role(guild, "Gueux", discord.Color.dark_grey())
         role_Chevalier = await get_or_create_role(guild, "Chevalier", discord.Color.gold())
