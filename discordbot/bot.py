@@ -11,19 +11,19 @@ init_db()
 # Register events
 @bot.event
 async def on_ready():
-    await on_ready_handler(bot)  # Pass bot as an argument
+    await on_ready_handler.start(bot)  # Pass bot as an argument
 
 @bot.event
 async def on_message(message):
-    await on_message_handler(message)  # Call the on_message function from the events module
+    await on_message_handler.start(message)  # Call the on_message function from the events module
 
 @bot.event
 async def on_member_join(member):
-    await on_member_join_handler(member)  # Call the on_member_join function from the events module
+    await on_member_join_handler.start(member)  # Call the on_member_join function from the events module
 
 @bot.event
 async def on_voice_state_update(member, before, after):
-    await on_voice_state_update_handler(member, before, after)  # Call the on_voice_state_update function from the events module
+    await on_voice_state_update_handler.start(member, before, after)  # Call the on_voice_state_update function from the events module
 
 # Register tasks
 check_inactivity.start()  # Start the background task
