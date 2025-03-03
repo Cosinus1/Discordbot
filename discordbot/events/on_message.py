@@ -3,8 +3,8 @@ import requests
 from config import bot, DAILY_EXP_THRESHOLD, EXP_PAR_MESSAGE, DEEPSEEK_API_KEY, DEEPSEEK_API_URL
 from database import get_user_data, update_user_data
 from datetime import datetime
-from utils.roles import check_role_upgrade
-from utils.exp import check_level_upgrade
+from utils.roles_utils import check_role_upgrade
+from utils.exp_utils import check_level_upgrade
 
 async def start(message):
     if message.author.bot:
