@@ -52,6 +52,18 @@ def get_user_data(user_id):
         }
     return None
 
+def get_all_users():
+    """Récupère tous les utilisateurs de la base de données."""
+    conn = sqlite3.connect('user_data.db')
+    c = conn.cursor()
+    c.execute('SELECT user_id FROM users')
+    users = c.fetchall()
+    conn.close()
+    
+    # Retourne une liste des IDs des utilisateurs
+    return [{"id": user[0]} for user in users]
+
+
 def update_user_data(user_id, **kwargs):
     conn = sqlite3.connect('user_data.db')
     c = conn.cursor()
