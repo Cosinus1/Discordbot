@@ -1,7 +1,7 @@
 from discord.ext import commands
 from config import bot, TOKEN
 from database import init_db
-from events import on_ready as on_ready_handler, on_message, on_member_join, on_voice_state_update
+from events import on_ready as on_ready_handler, on_message as on_message_handler, on_member_join as on_member_join_handler, on_voice_state_update as on_voice_state_update_handler
 from tasks import check_inactivity
 from commands import user_commands, admin_commands
 
@@ -11,19 +11,19 @@ init_db()
 # Register events
 @bot.event
 async def on_ready():
-    await on_ready(bot)  # Pass bot as an argument
+    await on_ready_handler(bot)  # Pass bot as an argument
 
 @bot.event
 async def on_message(message):
-    await on_message(message)  # Call the on_message function from the events module
+    await on_message_handler(message)  # Call the on_message function from the events module
 
 @bot.event
 async def on_member_join(member):
-    await on_member_join(member)  # Call the on_member_join function from the events module
+    await on_member_join_handler(member)  # Call the on_member_join function from the events module
 
 @bot.event
 async def on_voice_state_update(member, before, after):
-    await on_voice_state_update(member, before, after)  # Call the on_voice_state_update function from the events module
+    await on_voice_state_update_handler(member, before, after)  # Call the on_voice_state_update function from the events module
 
 # Register tasks
 check_inactivity.start()  # Start the background task
