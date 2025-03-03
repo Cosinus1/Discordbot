@@ -3,7 +3,7 @@ from .item_utils import generate_item_name
 
 def load_shop_items():
     """Load shop items from the JSON file and generate their names."""
-    with open("data/shop_items.json", "r") as file:
+    with open("data/mmo/shop_items.json", "r") as file:
         items = json.load(file)
     
     # Generate cool names for each item
