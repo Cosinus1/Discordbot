@@ -30,12 +30,12 @@ check_inactivity.check_inactivity()
 
 # Register commands
 bot.add_command(user_commands.exp)
+bot.add_command(user_commands.xp)
 bot.add_command(user_commands.money)
 bot.add_command(user_commands.bet)
 bot.add_command(user_commands.daily)
 bot.add_command(user_commands.send)
 bot.add_command(user_commands.roll)
-bot.add_command(user_commands.expvoice)
 bot.add_command(admin_commands.admin)
 bot.add_command(admin_commands.bye)
 
