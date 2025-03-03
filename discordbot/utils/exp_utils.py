@@ -1,6 +1,6 @@
 from database import get_user_data, update_user_data
 from config import LEVEL_THRESHOLD
-from utils.roles import send_to_bot_channel
+from utils.roles_utils import send_to_bot_channel
 
 async def check_level_upgrade(member):
     user = get_user_data(member.id)
