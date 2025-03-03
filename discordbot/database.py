@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime
+import json
 
 def init_db():
     conn = sqlite3.connect('user_data.db')
@@ -15,7 +16,8 @@ def init_db():
             last_exp_gain_date TEXT,
             daily_exp INTEGER DEFAULT 0,
             money INTEGER DEFAULT 0,
-            last_daily_claim TEXT
+            last_daily_claim TEXT,
+            inventory TEXT
         )
     ''')
 
@@ -28,6 +30,9 @@ def init_db():
 
     if 'last_daily_claim' not in columns:
         c.execute('ALTER TABLE users ADD COLUMN last_daily_claim TEXT')
+        
+    if 'inventory' not in columns:
+        c.execute('ALTER TABLE users ADD COLUMN inventory TEXT')
 
     conn.commit()
     conn.close()
@@ -53,16 +58,35 @@ def get_user_data(user_id):
     return None
 
 def get_all_users():
-    """Récupère tous les utilisateurs de la base de données."""
+    """Retrieve all users from the database."""
     conn = sqlite3.connect('user_data.db')
     c = conn.cursor()
     c.execute('SELECT user_id FROM users')
     users = c.fetchall()
     conn.close()
     
-    # Retourne une liste des IDs des utilisateurs
+    # Return a list of user IDs
     return [{"id": user[0]} for user in users]
 
+def get_user_inventory(user_id):
+    """Retrieve only the user's inventory."""
+    conn = sqlite3.connect('user_data.db')
+    c = conn.cursor()
+    c.execute('SELECT inventory FROM users WHERE user_id = ?', (user_id,))
+    inventory_json = c.fetchone()
+    conn.close()
+    
+    if inventory_json and inventory_json[0]:
+        return json.loads(inventory_json[0])  # Deserialize JSON
+    return []
+
+def update_user_inventory(user_id, inventory):
+    """Update only the user's inventory."""
+    conn = sqlite3.connect('user_data.db')
+    c = conn.cursor()
+    c.execute('UPDATE users SET inventory = ? WHERE user_id = ?', (json.dumps(inventory), user_id))
+    conn.commit()
+    conn.close()
 
 def update_user_data(user_id, **kwargs):
     conn = sqlite3.connect('user_data.db')
