@@ -1,8 +1,10 @@
+import discord
+import sqlite3
 from discord.ext import tasks
-from config import bot
-from database import get_user_data, update_user_data
+from config import bot, INACTIVITE_JOURS
+from database import update_user_data
 from datetime import datetime
-from utils.roles import get_or_create_role
+from utils.roles import get_or_create_role, send_to_bot_channel
 
 @tasks.loop(hours=24)
 async def check_inactivity():
