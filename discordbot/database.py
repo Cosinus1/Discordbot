@@ -17,7 +17,8 @@ def init_db():
             daily_exp INTEGER DEFAULT 0,
             money INTEGER DEFAULT 0,
             last_daily_claim TEXT,
-            inventory TEXT
+            inventory TEXT,
+            equipped_items TEXT
         )
     ''')
 
@@ -33,6 +34,10 @@ def init_db():
         
     if 'inventory' not in columns:
         c.execute('ALTER TABLE users ADD COLUMN inventory TEXT')
+        
+    if 'equipped_items' not in columns:
+        c.execute('ALTER TABLE users ADD COLUMN equipped_items TEXT')
+
 
     conn.commit()
     conn.close()
@@ -80,6 +85,26 @@ def get_user_inventory(user_id):
         return json.loads(inventory_json[0])  # Deserialize JSON
     return []
 
+def get_user_equipped_items(user_id):
+    """Retrieve only the user's equipped items."""
+    conn = sqlite3.connect('user_data.db')
+    c = conn.cursor()
+    c.execute('SELECT equipped_items FROM users WHERE user_id = ?', (user_id,))
+    equipped_items_json = c.fetchone()
+    conn.close()
+    
+    if equipped_items_json and equipped_items_json[0]:
+        return json.loads(equipped_items_json[0])  # Deserialize JSON
+    return {}
+
+def update_user_equipped_items(user_id, equipped_items):
+    """Update only the user's equipped items."""
+    conn = sqlite3.connect('user_data.db')
+    c = conn.cursor()
+    c.execute('UPDATE users SET equipped_items = ? WHERE user_id = ?', (json.dumps(equipped_items), user_id))
+    conn.commit()
+    conn.close()
+    
 def update_user_inventory(user_id, inventory):
     """Update only the user's inventory."""
     conn = sqlite3.connect('user_data.db')

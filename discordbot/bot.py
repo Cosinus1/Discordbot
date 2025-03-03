@@ -5,7 +5,7 @@ from events import on_ready as on_ready_handler, on_message as on_message_handle
 from tasks import check_inactivity
 from commands import user_commands, admin_commands
 from commands.mmo_commands.combat import attack, farm
-#from commands.mmo_commands.inventory import inv, equip
+from commands.mmo_commands.inventory import inv, equip, unequip, stuff
 from commands.mmo_commands.shop import shop, buy, sell
 
 # Initialize the database
@@ -46,8 +46,10 @@ bot.add_command(admin_commands.bye)
 # MMO Commands
 bot.add_command(attack)
 bot.add_command(farm)
-#bot.add_command(inv)
-#bot.add_command(equip)
+bot.add_command(inv)
+bot.add_command(equip)
+bot.add_command(unequip)
+bot.add_command(stuff)
 bot.add_command(shop)
 bot.add_command(buy)
 bot.add_command(sell)
