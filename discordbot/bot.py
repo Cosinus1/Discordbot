@@ -1,7 +1,7 @@
 from discord.ext import commands
 from config import bot, TOKEN
 from database import init_db
-from events import on_ready, on_message, on_member_join, on_voice_state_update
+from events import on_ready as on_ready_handler, on_message, on_member_join, on_voice_state_update
 from tasks import check_inactivity
 from commands import user_commands, admin_commands
 
