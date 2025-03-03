@@ -1,5 +1,6 @@
-from config import bot
-from config import *
+import discord
+import requests
+from config import bot, DAILY_EXP_THRESHOLD, EXP_PAR_MESSAGE, DEEPSEEK_API_KEY, DEEPSEEK_API_URL
 from database import get_user_data, update_user_data
 from datetime import datetime
 from utils.roles import check_role_upgrade
@@ -68,3 +69,33 @@ async def start(message):
     
     # Allow other commands to work
     await bot.process_commands(message)
+    
+# Function to call the DeepSeek API
+def get_deepseek_response(message_content, user):
+    if user["role"] == "Gueux":
+        MAX_TOKENS = 100
+    else :
+        MAX_TOKENS = 1000
+    headers = {
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "model": "deepseek-chat",
+        "messages": [{"role": "user", "content": message_content}],
+        "max_tokens": MAX_TOKENS  
+    }
+
+    try:
+        # Send the request to the API
+        response = requests.post(DEEPSEEK_API_URL, headers=headers, json=data)
+
+        # Check if the request was successful
+        if response.status_code == 200:
+            return response.json()["choices"][0]["message"]["content"]
+        else:
+            return f"Désolé, je n'ai pas pu comprendre votre message. (Status Code: {response.status_code})"
+    except Exception as e:
+        # Print any exceptions that occur
+        print(f"An error occurred while calling the DeepSeek API: {e}")
+        return "Désolé, une erreur s'est produite lors de la communication avec l'API."
