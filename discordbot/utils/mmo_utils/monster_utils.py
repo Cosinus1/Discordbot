@@ -12,8 +12,8 @@ RARITY_MODIFIERS = {
         "defense_range": (4, 6),
         "gold_range": (5, 15),
         "item_templates": [
-            {"name": "Rusty Sword", "type": "weapon", "price": 5},
-            {"name": "Cloth Armor", "type": "armor", "price": 5}
+            {"name": "Rusty Sword", "type": "weapon", "price": 200},
+            {"name": "Cloth Armor", "type": "armor", "price": 150}
         ]
     },
     "rare": {
@@ -25,8 +25,8 @@ RARITY_MODIFIERS = {
         "defense_range": (8, 12),
         "gold_range": (40, 60),
         "item_templates": [
-            {"name": "Sturdy Shield", "type": "armor", "price": 50},
-            {"name": "Iron Axe", "type": "weapon", "price": 50}
+            {"name": "Sturdy Shield", "type": "armor", "price": 500},
+            {"name": "Iron Axe", "type": "weapon", "price": 400}
         ]
     },
     "epic": {
@@ -38,8 +38,8 @@ RARITY_MODIFIERS = {
         "defense_range": (20, 30),
         "gold_range": (300, 700),
         "item_templates": [
-            {"name": "Demonic Wand", "type": "weapon", "price": 200},
-            {"name": "Crystal Armor", "type": "armor", "price": 200}
+            {"name": "Demonic Wand", "type": "weapon", "price": 1200},
+            {"name": "Crystal Armor", "type": "armor", "price": 1000}
         ]
     },
     "legendary": {
@@ -51,8 +51,8 @@ RARITY_MODIFIERS = {
         "defense_range": (50, 70),
         "gold_range": (5000, 10000),
         "item_templates": [
-            {"name": "Obsidian Tooth", "type": "weapon", "price": 500},
-            {"name": "Dragon Scale Armor", "type": "armor", "price": 500}
+            {"name": "Obsidian Tooth", "type": "weapon", "price": 5500},
+            {"name": "Dragon Scale Armor", "type": "armor", "price": 4800}
         ]
     }
 }

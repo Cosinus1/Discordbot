@@ -20,6 +20,29 @@ async def inv(ctx):
     await ctx.send(f"**Your Inventory:**\n{inventory_list}")
 
 @commands.command()
+async def stats(ctx):
+    """Display the player's health, attack, and armor."""
+    player = get_player_data(ctx.author.id)
+    if not player:
+        await ctx.send("You are not registered as a player. (type `!join` to play)")
+        return
+
+    # Fetch player stats
+    health = player.get("health", 0)
+    attack = player.get("attack", 0)
+    armor = player.get("armor", 0)
+
+    # Format the stats for display
+    stats_message = (
+        f"**{ctx.author.display_name}'s Stats:**\n"
+        f"❤️ **Health:** {health}\n"
+        f"⚔️ **Attack:** {attack}\n"
+        f"🛡️ **Armor:** {armor}"
+    )
+
+    await ctx.send(stats_message)
+    
+@commands.command()
 async def buy(ctx, item_reference: str):
     """Buy an item from the shop by name or ID."""
     player = get_player_data(ctx.author.id)

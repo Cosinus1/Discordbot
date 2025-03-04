@@ -22,4 +22,4 @@ def simulate_combat(player, monster):
         player["health"] -= monster_damage
         combat_log.append(f"The {monster['name']} dealt {monster_damage} damage to you!")
 
-    return combat_log, player["health"] > 0
+    return combat_log, player["health"]

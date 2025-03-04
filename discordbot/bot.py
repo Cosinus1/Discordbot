@@ -6,7 +6,7 @@ from events import on_ready as on_ready_handler, on_message as on_message_handle
 from tasks import check_inactivity, shop_tasks
 from commands import user_commands, admin_commands
 from commands.mmo_commands.combat import attack, pve, hp, health
-from commands.mmo_commands.inventory import inv, equip, unequip, stuff, buy, sell
+from commands.mmo_commands.inventory import inv, stats, equip, unequip, stuff, buy, sell
 from commands.mmo_commands.shop import shop
 from commands.mmo_commands.join import join
 
@@ -55,6 +55,7 @@ bot.add_command(pve)
 bot.add_command(hp)
 bot.add_command(health)
 bot.add_command(inv)
+bot.add_command(stats)
 bot.add_command(equip)
 bot.add_command(unequip)
 bot.add_command(stuff)

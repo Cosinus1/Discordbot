@@ -30,7 +30,8 @@ async def pve(ctx, difficulty="easy"):
     await ctx.send(f"{ctx.author.mention} You encountered a {monster['name']} ({monster['rarity'].title()})!")
 
     # Simulate combat
-    combat_log, player_wins = simulate_combat(player, monster)
+    combat_log, player["health"] = simulate_combat(player, monster)
+    player_wins = player["health"] > 0
     for log in combat_log:
         await ctx.send(log)
         await asyncio.sleep(1)  # Add a delay for dramatic effect
@@ -49,7 +50,7 @@ async def pve(ctx, difficulty="easy"):
         else:
             await ctx.send(f"{ctx.author.mention} You defeated the {monster['name']} and gained {gold} gold!")
 
-        update_player_data(ctx.author.id, inventory=player["inventory"])
+        update_player_data(ctx.author.id, health=player["health"], inventory=player["inventory"])
         update_user_data(ctx.author.id, money=user["money"])
     else:
         # Player dies: set health to 0 and apply cooldown
@@ -75,7 +76,24 @@ async def attack(ctx, target: discord.Member):
 
     damage = calculate_damage(attacker, defender)
     defender["health"] -= damage
-    update_player_data(defender["user_id"], health=defender["health"])
+    
+    await ctx.send(f"{ctx.author.mention} attacked {target.mention} for {damage} damage!")
+
+    defender_survives = defender["health"] > 0
+    if defender_survives:    
+        update_player_data(defender["user_id"], health=defender["health"])
+    else :
+        # Player dies: set health to 0 and apply cooldown
+        defender["health"] = 0
+        update_player_data(ctx.author.id, health=defender["health"])
+        await ctx.send(f"{ctx.target.mention} You died. Please wait 5 minutes to be reincarnated.")
+        # Reincarnate after 5 minutes
+        await asyncio.sleep(300)  # 5 minutes
+        defender["health"] = 100
+        update_player_data(ctx.author.id, health=defender["health"])
+        await ctx.send(f"{ctx.author.mention} You have been reincarnated with full health!")
+        
+
 
     await ctx.send(f"{ctx.author.mention} attacked {target.mention} for {damage} damage!")
     
