@@ -1,5 +1,5 @@
 from discord.ext import commands
-from database import get_player_data, update_player_data
+from database import get_user_data, get_player_data, update_player_data, update_user_data
 from classes.item_manager import item_manager
 
 @commands.command()
@@ -37,21 +37,31 @@ async def buy(ctx, item_reference: str):
     if not item:
         await ctx.send("Item not found.")
         return
-
-    if player["money"] < item["price"]:
+    
+    user = get_user_data(ctx.author.id)
+    if not user:
+        await ctx.send("You are not registered in the database")
+        return
+    
+    if user["money"] < item["price"]:
         await ctx.send("You don't have enough gold to buy this item.")
         return
 
     # Deduct money and add item to inventory
-    player["money"] -= item["price"]
+    user["money"] -= item["price"]
     player["inventory"].append(item)
-    update_player_data(ctx.author.id, money=player["money"], inventory=player["inventory"])
+    update_player_data(ctx.author.id, inventory=player["inventory"])
+    update_user_data(ctx.author.id, money=player["money"])
 
     await ctx.send(f"You bought a {item['name']} ({item['rarity'].title()}) for {item['price']} gold!")
 
 @commands.command()
 async def sell(ctx, item_reference: str):
     """Sell an item from your inventory by name or display number."""
+    user = get_user_data(ctx.author.id)
+    if not user:
+        await ctx.send("You are not registered in the database")
+        return
     player = get_player_data(ctx.author.id)
     if not player:
         await ctx.send("You are not registered as a player. (type !join to play)")
@@ -80,9 +90,11 @@ async def sell(ctx, item_reference: str):
 
     # Add money and remove item from inventory
     sell_price = item_to_sell["price"] // 2  # Sell for half the price
-    player["money"] += sell_price
+    user["money"] += sell_price
     inventory.remove(item_to_sell)
-    update_player_data(ctx.author.id, money=player["money"], inventory=inventory)
+    update_player_data(ctx.author.id, inventory=inventory)
+    update_user_data(ctx.author.id, money=player["money"])
+
 
     await ctx.send(f"You sold a {item_to_sell['name']} ({item_to_sell['rarity'].title()}) for {sell_price} gold!")
 @commands.command()

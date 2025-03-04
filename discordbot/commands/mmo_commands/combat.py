@@ -55,13 +55,13 @@ async def pve(ctx, difficulty="easy"):
         # Player dies: set health to 0 and apply cooldown
         player["health"] = 0
         update_player_data(ctx.author.id, health=player["health"])
-        await ctx.send("{ctx.author.mention} You died. Please wait 5 minutes to be reincarnated.")
+        await ctx.send(f"{ctx.author.mention} You died. Please wait 5 minutes to be reincarnated.")
 
         # Reincarnate after 5 minutes
         await asyncio.sleep(300)  # 5 minutes
         player["health"] = 100
         update_player_data(ctx.author.id, health=player["health"])
-        await ctx.send("{ctx.author.mention} You have been reincarnated with full health!")
+        await ctx.send(f"{ctx.author.mention} You have been reincarnated with full health!")
         
 
 @commands.command()
