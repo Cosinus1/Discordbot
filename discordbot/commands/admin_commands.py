@@ -93,6 +93,11 @@ async def admin(ctx, action: str, target: str, value: int = None):
                         if item_to_remove:
                             player_data["inventory"].remove(item_to_remove)
                             update_player_data(user_id, inventory=player_data["inventory"])
+                elif action == "resetstuff":
+                    # Reset equipped items
+                    update_player_data(user_id, equipped_items= {})
+                
+                    await ctx.send(f"{ctx.author.mention}, reset {target.mention}'s equipped items.")
             except Exception as e:
                 await ctx.send(f"{ctx.author.mention}, an error occurred: {str(e)}")
                 return
@@ -189,10 +194,27 @@ async def admin(ctx, action: str, target: str, value: int = None):
             player_data["inventory"].remove(item_to_remove)
             update_player_data(target_member.id, inventory=player_data["inventory"])
             await ctx.send(f"{ctx.author.mention}, removed {item_to_remove['name']} from {target_member.mention}'s inventory.")
+        
+        elif action == "resetstuff":
+            # Reset equipped items
+            update_player_data(target_member.id, equipped_items={})
+        
+            await ctx.send(f"{ctx.author.mention}, reset {target.mention}'s equipped items.")
 
     except Exception as e:
         await ctx.send(f"{ctx.author.mention}, an error occurred: {str(e)}")
 
+@commands.command()
+async def setallmoney(ctx, value: int):
+    """Admin command to manage users."""
+    # Check if the user has the 'dev' role
+    if 'dev' not in [role.name.lower() for role in ctx.author.roles]:
+        await ctx.send(f"{ctx.author.mention}, you do not have permission to use this command.")
+        return
+    targets = get_all_users()
+    for target in targets :
+        update_player_data(target.id, money = value)
+        
 @commands.command()
 async def bye(ctx):
     """Stop the bot and process XP for users in voice channels."""
