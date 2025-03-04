@@ -94,21 +94,34 @@ def generate_monster_rewards(rarity):
     
     return rewards
 
-def get_monster():
-    """Get a random monster with generated stats, name, and rewards based on rarity."""
-    with open("data/mmo/monsters.json", "r") as file:
-        monsters = json.load(file)
+def get_monster(difficulty="easy"):
+
+    # Map difficulty to base rarity
+    DIFFICULTY_RARITY_MAP = {
+        "easy": "common",
+        "medium": "rare",
+        "hard": "epic",
+        "hardcore": "legendary"
+    }
     
-    monster_skeleton = random.choice(monsters)
-    rarity = monster_skeleton["rarity"]
+    # Get base rarity based on difficulty
+    base_rarity = DIFFICULTY_RARITY_MAP.get(difficulty, "common")
     
+    # 10% chance to increase rarity by one tier
+    if random.random() < 0.1:
+        rarity_tiers = ["common", "rare", "epic", "legendary"]
+        current_index = rarity_tiers.index(base_rarity)
+        if current_index < len(rarity_tiers) - 1:
+            base_rarity = rarity_tiers[current_index + 1]
+    
+    # Generate monster based on rarity
     monster = {
-        "name": generate_monster_name(rarity),
-        "health": generate_monster_stats(rarity)[0],
-        "attack": generate_monster_stats(rarity)[1],
-        "defense": generate_monster_stats(rarity)[2],
-        "rarity": rarity,
-        "rewards": generate_monster_rewards(rarity)
+        "name": generate_monster_name(base_rarity),
+        "health": generate_monster_stats(base_rarity)[0],
+        "attack": generate_monster_stats(base_rarity)[1],
+        "defense": generate_monster_stats(base_rarity)[2],
+        "rarity": base_rarity,
+        "rewards": generate_monster_rewards(base_rarity)
     }
     
     return monster
