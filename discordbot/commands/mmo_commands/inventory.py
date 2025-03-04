@@ -51,7 +51,7 @@ async def buy(ctx, item_reference: str):
     user["money"] -= item["price"]
     player["inventory"].append(item)
     update_player_data(ctx.author.id, inventory=player["inventory"])
-    update_user_data(ctx.author.id, money=player["money"])
+    update_user_data(ctx.author.id, money=user["money"])
 
     await ctx.send(f"You bought a {item['name']} [id = {item['id']}] ({item['rarity'].title()}) for {item['price']} gold!")
 
@@ -163,7 +163,7 @@ async def unequip(ctx, item_type: str):
 
     update_player_data(ctx.author.id, equipped_items=equipped_items, attack=player["attack"], armor=player["armor"])
 
-    await ctx.send(f"You unequipped {unequipped_item['name']} [id = {item['id']}] ({item_type.title()}).")
+    await ctx.send(f"You unequipped {unequipped_item['name']} [id = {unequipped_item['id']}] ({item_type.title()}).")
 
 @commands.command()
 async def stuff(ctx):
