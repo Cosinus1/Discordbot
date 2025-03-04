@@ -1,14 +1,14 @@
 [
     {
-        "name": "Goblin",
-        "health": 50,
-        "attack": 10,
-        "defense": 5
+        "rarity": "common"
     },
     {
-        "name": "Orc",
-        "health": 100,
-        "attack": 20,
-        "defense": 10
+        "rarity": "rare"
+    },
+    {
+        "rarity": "epic"
+    },
+    {
+        "rarity": "legendary"
     }
 ]
