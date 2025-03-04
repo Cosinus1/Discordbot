@@ -7,8 +7,14 @@ import random
 import asyncio
 
 @commands.command()
-async def pve(ctx):
-    """Fight a randomly generated monster."""
+async def pve(ctx, difficulty="easy"):
+    """Fight a randomly generated monster based on difficulty."""
+    # Validate difficulty input
+    valid_difficulties = ["easy", "medium", "hard", "hardcore"]
+    if difficulty.lower() not in valid_difficulties:
+        await ctx.send(f"Invalid difficulty. Choose from: {', '.join(valid_difficulties)}")
+        return
+    
     player = get_player_data(ctx.author.id)
     if not player:
         await ctx.send("You are not registered as a player. Use `!join` to create a player profile.")
@@ -18,7 +24,8 @@ async def pve(ctx):
         await ctx.send("You are dead. Please wait 5 minutes to be reincarnated.")
         return
 
-    monster = get_monster()
+    # Get monster based on difficulty
+    monster = get_monster(difficulty.lower())
     await ctx.send(f"You encountered a {monster['name']} ({monster['rarity'].title()})!")
 
     # Simulate combat
