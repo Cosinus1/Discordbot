@@ -1,5 +1,5 @@
 from discord.ext import commands
-from database import get_user_data, update_user_data, get_player_inventory, update_player_inventory
+from database import get_user_data, update_user_data, get_player_data, get_player_inventory, update_player_inventory
 from utils.mmo_utils.shop_utils import load_shop_items, get_item_by_id
 
 @commands.command()
@@ -13,8 +13,12 @@ async def shop(ctx):
 async def buy(ctx, item_id: int):
     """Buy an item from the shop."""
     user = get_user_data(ctx.author.id)
+    player = get_player_data(ctx.author.id)
     if not user:
         await ctx.send("You are not registered in the database.")
+        return
+    if not player:
+        await ctx.send("You are not registered to the game (type !join).")
         return
 
     item = get_item_by_id(item_id)
@@ -39,10 +43,13 @@ async def buy(ctx, item_id: int):
 async def sell(ctx, item_id: int):
     """Sell an item from your inventory."""
     user = get_user_data(ctx.author.id)
+    player = get_player_data(ctx.author.id)
     if not user:
         await ctx.send("You are not registered in the database.")
         return
-
+    if not player:
+        await ctx.send("You are not registered to the game (type !join).")
+        return
     inventory = get_player_inventory(ctx.author.id)
     if not inventory:
         await ctx.send("Your inventory is empty.")

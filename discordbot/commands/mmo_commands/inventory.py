@@ -1,5 +1,5 @@
 from discord.ext import commands
-from database import get_player_data, update_player_data, get_user_data, update_user_data
+from database import get_player_data, update_player_data
 import json
 
 @commands.command()
@@ -7,7 +7,7 @@ async def inv(ctx):
     """Display the user's inventory."""
     player = get_player_data(ctx.author.id)
     if not player:
-        await ctx.send("You are not registered as a player.")
+        await ctx.send("You are not registered as a player. (type !join to play)")
         return
 
     inventory = player["inventory"]
@@ -92,7 +92,7 @@ async def stuff(ctx):
     """Display the user's equipped items."""
     player = get_player_data(ctx.author.id)
     if not player:
-        await ctx.send("You are not registered as a player.")
+        await ctx.send("You are not registered as a player. (type !join)")
         return
 
     equipped_items = player["equipped_items"]
@@ -109,7 +109,7 @@ async def use(ctx, item_id: int):
     """Use a consumable item (e.g., health potion)."""
     player = get_player_data(ctx.author.id)
     if not player:
-        await ctx.send("You are not registered as a player.")
+        await ctx.send("You are not registered as a player. (type !join)")
         return
 
     inventory = player["inventory"]

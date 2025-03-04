@@ -224,7 +224,7 @@ def update_player_data(user_id, **kwargs):
     conn.commit()
     conn.close()
     
-def update_user_equipped_items(user_id, equipped_items):
+def update_player_equipped_items(user_id, equipped_items):
     """Update only the user's equipped items."""
     conn = sqlite3.connect('user_data.db')
     c = conn.cursor()
@@ -232,7 +232,7 @@ def update_user_equipped_items(user_id, equipped_items):
     conn.commit()
     conn.close()
     
-def update_user_inventory(user_id, inventory):
+def update_player_inventory(user_id, inventory):
     """Update only the user's inventory."""
     conn = sqlite3.connect('user_data.db')
     c = conn.cursor()
