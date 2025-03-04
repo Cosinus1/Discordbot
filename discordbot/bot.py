@@ -17,6 +17,11 @@ init_db()
 @bot.event
 async def on_ready():
     await on_ready_handler.start(bot)  # Pass bot as an argument
+    
+    # Start background tasks after the bot is ready
+    check_inactivity.start()
+    shop_tasks.refresh_shop_task.start()
+
 
 @bot.event
 async def on_message(message):
@@ -29,10 +34,6 @@ async def on_member_join(member):
 @bot.event
 async def on_voice_state_update(member, before, after):
     await on_voice_state_update_handler.start(member, before, after)  # Call the on_voice_state_update function from the events module
-
-# Register tasks
-asyncio.create_task(check_inactivity.start())  # Start the background task
-asyncio.create_task(shop_tasks.refresh_shop_task())
 
 # Register commands
 # User Commands
