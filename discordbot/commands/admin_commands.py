@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from database import get_user_data, update_user_data, get_player_data, update_player_data
+from database import get_user_data, update_user_data, get_player_data, update_player_data, get_all_users, get_all_players
 from datetime import datetime
 from config import DAILY_EXP_THRESHOLD, EXP_PAR_MINUTE_VOCAL
 from events.on_voice_state_update import user_join_times
@@ -8,7 +8,7 @@ from config import bot
 from item_manager import item_manager
 
 @commands.command()
-async def admin(ctx, action: str, target: discord.Member, value: int = None):
+async def admin(ctx, action: str, target: str, value: int = None):
     """Admin command to manage users."""
     # Check if the user has the 'dev' role
     if 'dev' not in [role.name.lower() for role in ctx.author.roles]:
@@ -25,52 +25,129 @@ async def admin(ctx, action: str, target: discord.Member, value: int = None):
         await ctx.send(f"{ctx.author.mention}, invalid action. Use one of: {', '.join(valid_actions)}.")
         return
 
-    # Get the target user's data
-    target_user = get_user_data(target.id)
-    if not target_user:
-        await ctx.send(f"{ctx.author.mention}, no data found for {target.mention}.")
+    # Handle "all" target
+    if target.lower() == "all":
+        # Get all users or players based on the action
+        if action in ["setlevel", "setmoney", "setexp"]:
+            targets = get_all_users()
+        else:
+            targets = get_all_players()
+
+        if not targets:
+            await ctx.send(f"{ctx.author.mention}, no targets found.")
+            return
+
+        # Apply the action to all targets
+        for user_id in targets:
+            if action == "setlevel":
+                if value is None or value < 0:
+                    await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
+                    return
+                update_user_data(user_id, level=value)
+            elif action == "setmoney":
+                if value is None or value < 0:
+                    await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
+                    return
+                update_user_data(user_id, money=value)
+            elif action == "sethealth":
+                if value is None or value < 0:
+                    await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
+                    return
+                update_player_data(user_id, health=value)
+            elif action == "setexp":
+                if value is None or value < 0:
+                    await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
+                    return
+                update_user_data(user_id, exp=value)
+            elif action == "resetinventory":
+                update_player_data(user_id, inventory=[])
+            elif action == "revive":
+                update_player_data(user_id, health=100)
+            elif action == "kill":
+                update_player_data(user_id, health=0)
+            elif action == "additem":
+                if value is None:
+                    await ctx.send(f"{ctx.author.mention}, please specify an item ID.")
+                    return
+                item = item_manager.get_item_by_id(value)
+                if not item:
+                    await ctx.send(f"{ctx.author.mention}, item with ID {value} not found.")
+                    return
+                player_data = get_player_data(user_id)
+                if player_data:
+                    player_data["inventory"].append(item)
+                    update_player_data(user_id, inventory=player_data["inventory"])
+            elif action == "removeitem":
+                if value is None:
+                    await ctx.send(f"{ctx.author.mention}, please specify an item ID.")
+                    return
+                player_data = get_player_data(user_id)
+                if player_data:
+                    item_to_remove = None
+                    for item in player_data["inventory"]:
+                        if item["id"] == value:
+                            item_to_remove = item
+                            break
+                    if item_to_remove:
+                        player_data["inventory"].remove(item_to_remove)
+                        update_player_data(user_id, inventory=player_data["inventory"])
+
+        await ctx.send(f"{ctx.author.mention}, applied `{action}` to all {'users' if action in ['setlevel', 'setmoney', 'setexp'] else 'players'}.")
         return
 
-    # Handle actions
+    # Handle single user target
+    try:
+        target_member = await commands.MemberConverter().convert(ctx, target)
+    except commands.MemberNotFound:
+        await ctx.send(f"{ctx.author.mention}, user `{target}` not found.")
+        return
+
+    # Get the target user's data
+    target_user = get_user_data(target_member.id)
+    if not target_user:
+        await ctx.send(f"{ctx.author.mention}, no data found for {target_member.mention}.")
+        return
+
+    # Handle actions for single user
     if action == "setlevel":
         if value is None or value < 0:
             await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
             return
-        update_user_data(target.id, level=value)
-        await ctx.send(f"{ctx.author.mention}, set {target.mention}'s level to **{value}**.")
+        update_user_data(target_member.id, level=value)
+        await ctx.send(f"{ctx.author.mention}, set {target_member.mention}'s level to **{value}**.")
 
     elif action == "setmoney":
         if value is None or value < 0:
             await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
             return
-        update_user_data(target.id, money=value)
-        await ctx.send(f"{ctx.author.mention}, set {target.mention}'s money to **{value}**.")
+        update_user_data(target_member.id, money=value)
+        await ctx.send(f"{ctx.author.mention}, set {target_member.mention}'s money to **{value}**.")
 
     elif action == "sethealth":
         if value is None or value < 0:
             await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
             return
-        update_player_data(target.id, health=value)
-        await ctx.send(f"{ctx.author.mention}, set {target.mention}'s health to **{value}**.")
+        update_player_data(target_member.id, health=value)
+        await ctx.send(f"{ctx.author.mention}, set {target_member.mention}'s health to **{value}**.")
 
     elif action == "setexp":
         if value is None or value < 0:
             await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
             return
-        update_user_data(target.id, exp=value)
-        await ctx.send(f"{ctx.author.mention}, set {target.mention}'s experience to **{value}**.")
+        update_user_data(target_member.id, exp=value)
+        await ctx.send(f"{ctx.author.mention}, set {target_member.mention}'s experience to **{value}**.")
 
     elif action == "resetinventory":
-        update_player_data(target.id, inventory=[])
-        await ctx.send(f"{ctx.author.mention}, reset {target.mention}'s inventory.")
+        update_player_data(target_member.id, inventory=[])
+        await ctx.send(f"{ctx.author.mention}, reset {target_member.mention}'s inventory.")
 
     elif action == "revive":
-        update_player_data(target.id, health=100)
-        await ctx.send(f"{ctx.author.mention}, revived {target.mention} to full health.")
+        update_player_data(target_member.id, health=100)
+        await ctx.send(f"{ctx.author.mention}, revived {target_member.mention} to full health.")
 
     elif action == "kill":
-        update_player_data(target.id, health=0)
-        await ctx.send(f"{ctx.author.mention}, killed {target.mention}.")
+        update_player_data(target_member.id, health=0)
+        await ctx.send(f"{ctx.author.mention}, killed {target_member.mention}.")
 
     elif action == "additem":
         if value is None:
@@ -80,21 +157,21 @@ async def admin(ctx, action: str, target: discord.Member, value: int = None):
         if not item:
             await ctx.send(f"{ctx.author.mention}, item with ID {value} not found.")
             return
-        player_data = get_player_data(target.id)
+        player_data = get_player_data(target_member.id)
         if not player_data:
-            await ctx.send(f"{ctx.author.mention}, no player data found for {target.mention}.")
+            await ctx.send(f"{ctx.author.mention}, no player data found for {target_member.mention}.")
             return
         player_data["inventory"].append(item)
-        update_player_data(target.id, inventory=player_data["inventory"])
-        await ctx.send(f"{ctx.author.mention}, added {item['name']} to {target.mention}'s inventory.")
+        update_player_data(target_member.id, inventory=player_data["inventory"])
+        await ctx.send(f"{ctx.author.mention}, added {item['name']} to {target_member.mention}'s inventory.")
 
     elif action == "removeitem":
         if value is None:
             await ctx.send(f"{ctx.author.mention}, please specify an item ID.")
             return
-        player_data = get_player_data(target.id)
+        player_data = get_player_data(target_member.id)
         if not player_data:
-            await ctx.send(f"{ctx.author.mention}, no player data found for {target.mention}.")
+            await ctx.send(f"{ctx.author.mention}, no player data found for {target_member.mention}.")
             return
         item_to_remove = None
         for item in player_data["inventory"]:
@@ -102,11 +179,11 @@ async def admin(ctx, action: str, target: discord.Member, value: int = None):
                 item_to_remove = item
                 break
         if not item_to_remove:
-            await ctx.send(f"{ctx.author.mention}, item with ID {value} not found in {target.mention}'s inventory.")
+            await ctx.send(f"{ctx.author.mention}, item with ID {value} not found in {target_member.mention}'s inventory.")
             return
         player_data["inventory"].remove(item_to_remove)
-        update_player_data(target.id, inventory=player_data["inventory"])
-        await ctx.send(f"{ctx.author.mention}, removed {item_to_remove['name']} from {target.mention}'s inventory.")
+        update_player_data(target_member.id, inventory=player_data["inventory"])
+        await ctx.send(f"{ctx.author.mention}, removed {item_to_remove['name']} from {target_member.mention}'s inventory.")
 
 @commands.command()
 async def bye(ctx):
