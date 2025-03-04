@@ -35,4 +35,3 @@ async def fetch_and_store_data(guild):
         print("Aucun nouveau membre à ajouter.")
 
     await asyncio.sleep(1)  # Évite d'être rate-limited si le bot est sur plusieurs serveurs
-

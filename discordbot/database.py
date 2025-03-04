@@ -186,18 +186,31 @@ def get_user_equipped_items(user_id):
 
 """///////////////////////SETTERS//////////////////////"""
 
-def update_user_data(user_id, **kwargs):
-    """Update Discord-related user data."""
+def update_user_data(users):
+    """Update user data in batch or for a single user."""
     conn = sqlite3.connect('user_data.db')
     c = conn.cursor()
-    updates = []
-    params = []
-    for key, value in kwargs.items():
-        if value is not None:
-            updates.append(f"{key} = ?")
-            params.append(value.isoformat() if isinstance(value, datetime) else value)
-    params.append(user_id)
-    c.execute(f'UPDATE users SET {", ".join(updates)} WHERE user_id = ?', params)
+
+    if isinstance(users, list):  # Batch update
+        for user in users:
+            updates = []
+            params = []
+            for key, value in user.items():
+                if value is not None:
+                    updates.append(f"{key} = ?")
+                    params.append(value.isoformat() if isinstance(value, datetime) else value)
+            params.append(user["user_id"])
+            c.execute(f'UPDATE users SET {", ".join(updates)} WHERE user_id = ?', params)
+    else:  # Single user update
+        updates = []
+        params = []
+        for key, value in users.items():
+            if value is not None:
+                updates.append(f"{key} = ?")
+                params.append(value.isoformat() if isinstance(value, datetime) else value)
+        params.append(users["user_id"])
+        c.execute(f'UPDATE users SET {", ".join(updates)} WHERE user_id = ?', params)
+
     conn.commit()
     conn.close()
 

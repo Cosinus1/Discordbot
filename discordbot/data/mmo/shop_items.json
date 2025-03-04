@@ -13,7 +13,7 @@
         "type": "armor",
         "rarity": "rare",
         "price": 100,
-        "armor": 5  // Armor value for armor
+        "armor": 5
     },
     {
         "id": 3,
