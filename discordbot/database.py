@@ -204,9 +204,10 @@ def create_player(user_id):
     c.execute('INSERT INTO players (user_id) VALUES (?)', (user_id,))
     conn.commit()
     conn.close()
-    
+
+
 def update_user_data(user_id, **kwargs):
-    """Update Discord-related user data."""
+    """Update Discord-related user data. Creates a new user if the user_id doesn't exist."""
     if not kwargs:
         raise ValueError("No fields to update provided.")
 
@@ -231,11 +232,44 @@ def update_user_data(user_id, **kwargs):
         raise ValueError("No valid fields to update.")
 
     params.append(user_id)
-    query = f'UPDATE users SET {", ".join(updates)} WHERE user_id = ?'
+    update_query = f'UPDATE users SET {", ".join(updates)} WHERE user_id = ?'
 
     with sqlite3.connect('user_data.db') as conn:
         c = conn.cursor()
-        c.execute(query, params)
+
+        # Check if the user exists
+        c.execute('SELECT user_id FROM users WHERE user_id = ?', (user_id,))
+        user_exists = c.fetchone()
+
+        if user_exists:
+            # Update the existing user
+            c.execute(update_query, params)
+        else:
+            # Insert a new user with default values
+            default_values = {
+                "exp": 0,
+                "level": 0,
+                "last_activity": datetime.now().isoformat(),
+                "role": "Gueux",
+                "last_exp_gain_date": datetime.now().isoformat(),
+                "daily_exp": 0,
+                "money": 0,
+                "last_daily_claim": None
+            }
+
+            # Merge default values with provided kwargs
+            for key, value in kwargs.items():
+                if key in valid_columns:
+                    default_values[key] = value.isoformat() if isinstance(value, datetime) else value
+
+            # Prepare the insert query
+            columns = ", ".join(default_values.keys())
+            placeholders = ", ".join("?" * len(default_values))
+            insert_query = f'INSERT INTO users (user_id, {columns}) VALUES (?, {placeholders})'
+
+            # Execute the insert query
+            c.execute(insert_query, (user_id, *default_values.values()))
+
         conn.commit()
 
 def update_player_data(user_id, **kwargs):
