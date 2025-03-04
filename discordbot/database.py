@@ -133,6 +133,17 @@ def get_all_users():
     # Return a list of user IDs
     return [{"id": user[0]} for user in users]
 
+def get_all_players():
+    """Retrieve all players from database"""
+    conn = sqlite3.connect('user_data.db')
+    c = conn.cursor()
+    c.execute('SELECT user_id FROM players')
+    users = c.fetchall()
+    conn.close()
+    
+    # Return a list of user IDs
+    return [{"id": user[0]} for user in users]
+    
 def player_exists(user_id):
     """Check if a player entry exists for the user."""
     conn = sqlite3.connect('user_data.db')
