@@ -1,6 +1,6 @@
 from discord.ext import commands
 from database import get_player_data, update_player_data
-import json
+from classes.item_manager import item_manager
 
 @commands.command()
 async def inv(ctx):
@@ -16,9 +16,75 @@ async def inv(ctx):
         return
 
     # Format inventory for display
-    inventory_list = "\n".join([f"{item['id']}. {item['name']} ({item['type'].title()}, {item['rarity'].title()})" for item in inventory])
+    inventory_list = "\n".join([f"{idx + 1}. {item['name']} ({item['type'].title()}, {item['rarity'].title()})" for idx, item in enumerate(inventory)])
     await ctx.send(f"**Your Inventory:**\n{inventory_list}")
 
+@commands.command()
+async def buy(ctx, item_reference: str):
+    """Buy an item from the shop by name or ID."""
+    player = get_player_data(ctx.author.id)
+    if not player:
+        await ctx.send("You are not registered as a player. (type !join to play)")
+        return
+
+    # Try to find the item by ID or name
+    item = None
+    if item_reference.isdigit():
+        item = item_manager.get_item_by_id(int(item_reference))
+    else:
+        item = item_manager.get_item_by_name(item_reference)
+
+    if not item:
+        await ctx.send("Item not found.")
+        return
+
+    if player["money"] < item["price"]:
+        await ctx.send("You don't have enough gold to buy this item.")
+        return
+
+    # Deduct money and add item to inventory
+    player["money"] -= item["price"]
+    player["inventory"].append(item)
+    update_player_data(ctx.author.id, money=player["money"], inventory=player["inventory"])
+
+    await ctx.send(f"You bought a {item['name']} ({item['rarity'].title()}) for {item['price']} gold!")
+
+@commands.command()
+async def sell(ctx, item_reference: str):
+    """Sell an item from your inventory by name or display number."""
+    player = get_player_data(ctx.author.id)
+    if not player:
+        await ctx.send("You are not registered as a player. (type !join to play)")
+        return
+
+    inventory = player["inventory"]
+    if not inventory:
+        await ctx.send("Your inventory is empty.")
+        return
+
+    # Try to find the item by display number or name
+    item_to_sell = None
+    if item_reference.isdigit():
+        idx = int(item_reference) - 1
+        if 0 <= idx < len(inventory):
+            item_to_sell = inventory[idx]
+    else:
+        for item in inventory:
+            if item["name"].lower() == item_reference.lower():
+                item_to_sell = item
+                break
+
+    if not item_to_sell:
+        await ctx.send("Item not found in your inventory.")
+        return
+
+    # Add money and remove item from inventory
+    sell_price = item_to_sell["price"] // 2  # Sell for half the price
+    player["money"] += sell_price
+    inventory.remove(item_to_sell)
+    update_player_data(ctx.author.id, money=player["money"], inventory=inventory)
+
+    await ctx.send(f"You sold a {item_to_sell['name']} ({item_to_sell['rarity'].title()}) for {sell_price} gold!")
 @commands.command()
 async def equip(ctx, item_id: int):
     """Equip an item from the user's inventory."""

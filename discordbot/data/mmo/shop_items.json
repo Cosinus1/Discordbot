@@ -1,6 +1,6 @@
 [
     {
-        "id": 1,
+        "id": 6,
         "base_name": "Sword",
         "type": "weapon",
         "rarity": "common",
@@ -8,7 +8,7 @@
         "attack": 10  
     },
     {
-        "id": 2,
+        "id": 7,
         "base_name": "Shield",
         "type": "armor",
         "rarity": "rare",
@@ -16,7 +16,7 @@
         "armor": 5
     },
     {
-        "id": 3,
+        "id": 8,
         "base_name": "Health Potion",
         "type": "consumable",
         "rarity": "common",
@@ -24,7 +24,7 @@
         "health_restore": 20 
     },
     {
-        "id": 4,
+        "id": 9,
         "base_name": "Bow",
         "type": "weapon",
         "rarity": "epic",
@@ -32,7 +32,7 @@
         "attack": 25 
     },
     {
-        "id": 5,
+        "id": 10,
         "base_name": "Helmet",
         "type": "armor",
         "rarity": "legendary",

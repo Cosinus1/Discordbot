@@ -5,8 +5,8 @@ from events import on_ready as on_ready_handler, on_message as on_message_handle
 from tasks import check_inactivity
 from commands import user_commands, admin_commands
 from commands.mmo_commands.combat import attack, pve
-from commands.mmo_commands.inventory import inv, equip, unequip, stuff
-from commands.mmo_commands.shop import shop, buy, sell
+from commands.mmo_commands.inventory import inv, equip, unequip, stuff, buy, sell
+from commands.mmo_commands.shop import shop
 from commands.mmo_commands.join import join
 
 # Initialize the database
