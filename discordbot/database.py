@@ -160,11 +160,11 @@ def get_player_data(user_id):
         }
     return None
 
-def get_user_inventory(user_id):
+def get_player_inventory(user_id):
     """Retrieve only the user's inventory."""
     conn = sqlite3.connect('user_data.db')
     c = conn.cursor()
-    c.execute('SELECT inventory FROM users WHERE user_id = ?', (user_id,))
+    c.execute('SELECT inventory FROM players WHERE user_id = ?', (user_id,))
     inventory_json = c.fetchone()
     conn.close()
     
@@ -172,7 +172,7 @@ def get_user_inventory(user_id):
         return json.loads(inventory_json[0])  # Deserialize JSON
     return []
 
-def get_user_equipped_items(user_id):
+def get_player_equipped_items(user_id):
     """Retrieve only the user's equipped items."""
     conn = sqlite3.connect('user_data.db')
     c = conn.cursor()

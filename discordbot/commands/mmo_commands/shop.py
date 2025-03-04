@@ -1,5 +1,5 @@
 from discord.ext import commands
-from database import get_user_data, update_user_data, get_user_inventory, update_user_inventory
+from database import get_user_data, update_user_data, get_player_inventory, update_player_inventory
 from utils.mmo_utils.shop_utils import load_shop_items, get_item_by_id
 
 @commands.command()
@@ -28,9 +28,9 @@ async def buy(ctx, item_id: int):
 
     # Deduct money and add item to user's inventory
     user["money"] -= item["price"]
-    inventory = get_user_inventory(ctx.author.id)
+    inventory = get_player_inventory(ctx.author.id)
     inventory.append(item)
-    update_user_inventory(ctx.author.id, inventory)
+    update_player_inventory(ctx.author.id, inventory)
     update_user_data(ctx.author.id, money=user["money"])
 
     await ctx.send(f"You bought a {item['name']} ({item['rarity'].title()}) for {item['price']} gold!")
@@ -43,7 +43,7 @@ async def sell(ctx, item_id: int):
         await ctx.send("You are not registered in the database.")
         return
 
-    inventory = get_user_inventory(ctx.author.id)
+    inventory = get_player_inventory(ctx.author.id)
     if not inventory:
         await ctx.send("Your inventory is empty.")
         return
@@ -63,7 +63,7 @@ async def sell(ctx, item_id: int):
     sell_price = item_to_sell["price"] // 2  # Sell for half the price
     user["money"] += sell_price
     inventory.remove(item_to_sell)
-    update_user_inventory(ctx.author.id, inventory)
+    update_player_inventory(ctx.author.id, inventory)
     update_user_data(ctx.author.id, money=user["money"])
 
     await ctx.send(f"You sold a {item_to_sell['name']} ({item_to_sell['rarity'].title()}) for {sell_price} gold!")
