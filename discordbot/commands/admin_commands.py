@@ -5,7 +5,7 @@ from datetime import datetime
 from config import DAILY_EXP_THRESHOLD, EXP_PAR_MINUTE_VOCAL
 from events.on_voice_state_update import user_join_times
 from config import bot
-from item_manager import item_manager
+from classes.item_manager import item_manager
 
 @commands.command()
 async def admin(ctx, action: str, target: str, value: int = None):
