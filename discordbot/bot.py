@@ -1,8 +1,9 @@
 from discord.ext import commands
+import asyncio
 from config import bot, TOKEN
 from database import init_db
 from events import on_ready as on_ready_handler, on_message as on_message_handler, on_member_join as on_member_join_handler, on_voice_state_update as on_voice_state_update_handler
-from tasks import check_inactivity
+from tasks import check_inactivity, shop_tasks
 from commands import user_commands, admin_commands
 from commands.mmo_commands.combat import attack, pve, hp, health
 from commands.mmo_commands.inventory import inv, equip, unequip, stuff, buy, sell
@@ -30,7 +31,8 @@ async def on_voice_state_update(member, before, after):
     await on_voice_state_update_handler.start(member, before, after)  # Call the on_voice_state_update function from the events module
 
 # Register tasks
-check_inactivity.start()  # Start the background task
+asyncio.check_inactivity.start()  # Start the background task
+asyncio.shop_tasks.refresh_shop_task()
 
 # Register commands
 # User Commands

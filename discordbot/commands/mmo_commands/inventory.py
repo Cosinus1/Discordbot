@@ -16,7 +16,7 @@ async def inv(ctx):
         return
 
     # Format inventory for display
-    inventory_list = "\n".join([f"{idx + 1}. {item['name']} ({item['type'].title()}, {item['rarity'].title()} [id = {item['id']}])" for idx, item in enumerate(inventory)])
+    inventory_list = "\n".join([f"{idx + 1}. {item['name']} (ID: {item['id']}, {item['type'].title()}, {item['rarity'].title()})" for idx, item in enumerate(inventory)])
     await ctx.send(f"**Your Inventory:**\n{inventory_list}")
 
 @commands.command()
@@ -51,9 +51,9 @@ async def buy(ctx, item_reference: str):
     user["money"] -= item["price"]
     player["inventory"].append(item)
     update_player_data(ctx.author.id, inventory=player["inventory"])
-    update_user_data(ctx.author.id, money=user["money"])
+    update_user_data(ctx.author.id, money=player["money"])
 
-    await ctx.send(f"You bought a {item['name']} [id = {item['id']}] ({item['rarity'].title()}) for {item['price']} gold!")
+    await ctx.send(f"You bought a {item['name']} (ID: {item['id']}, {item['rarity'].title()}) for {item['price']} gold!")
 
 @commands.command()
 async def sell(ctx, item_reference: str):
@@ -93,10 +93,10 @@ async def sell(ctx, item_reference: str):
     user["money"] += sell_price
     inventory.remove(item_to_sell)
     update_player_data(ctx.author.id, inventory=inventory)
-    update_user_data(ctx.author.id, money=user["money"])
+    update_user_data(ctx.author.id, money=player["money"])
 
+    await ctx.send(f"You sold a {item_to_sell['name']} (ID: {item_to_sell['id']}, {item_to_sell['rarity'].title()}) for {sell_price} gold!")
 
-    await ctx.send(f"You sold a {item_to_sell['name']} [id = {item['id']}] ({item_to_sell['rarity'].title()}) for {sell_price} gold!")
 @commands.command()
 async def equip(ctx, item_id: int):
     """Equip an item from the user's inventory."""
@@ -138,7 +138,7 @@ async def equip(ctx, item_id: int):
     equipped_items[item_to_equip["type"]] = item_to_equip
     update_player_data(ctx.author.id, equipped_items=equipped_items, attack=player["attack"], armor=player["armor"])
 
-    await ctx.send(f"You equipped {item_to_equip['name']} [id = {item['id']}] ({item_to_equip['type'].title()}).")
+    await ctx.send(f"You equipped {item_to_equip['name']} (ID: {item_to_equip['id']}, {item_to_equip['type'].title()}).")
 
 @commands.command()
 async def unequip(ctx, item_type: str):
@@ -163,7 +163,7 @@ async def unequip(ctx, item_type: str):
 
     update_player_data(ctx.author.id, equipped_items=equipped_items, attack=player["attack"], armor=player["armor"])
 
-    await ctx.send(f"You unequipped {unequipped_item['name']} [id = {unequipped_item['id']}] ({item_type.title()}).")
+    await ctx.send(f"You unequipped {unequipped_item['name']} (ID: {unequipped_item['id']}, {item_type.title()}).")
 
 @commands.command()
 async def stuff(ctx):
@@ -179,7 +179,7 @@ async def stuff(ctx):
         return
 
     # Format equipped items for display
-    equipped_list = "\n".join([f"{item['name']} [id = {item['id']}] ({item['type'].title()}, {item['rarity'].title()})" for item in equipped_items.values()])
+    equipped_list = "\n".join([f"{item['name']} (ID: {item['id']}, {item['type'].title()}, {item['rarity'].title()})" for item in equipped_items.values()])
     await ctx.send(f"**Your Equipped Items:**\n{equipped_list}")
 
 @commands.command()
@@ -214,7 +214,7 @@ async def use(ctx, item_id: int):
     if "health_restore" in item_to_use:
         player["health"] = min(100, player["health"] + item_to_use["health_restore"])
         update_player_data(ctx.author.id, health=player["health"])
-        await ctx.send(f"You used {item_to_use['name']} [id = {item['id']}] and restored {item_to_use['health_restore']} health.")
+        await ctx.send(f"You used {item_to_use['name']} (ID: {item_to_use['id']}) and restored {item_to_use['health_restore']} health.")
     else:
         await ctx.send("This item has no effect.")
 
