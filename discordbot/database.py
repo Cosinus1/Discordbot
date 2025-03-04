@@ -6,6 +6,7 @@ def init_db():
     conn = sqlite3.connect('user_data.db')
     c = conn.cursor()
 
+    # Create the users table (Discord-related data)
     c.execute('''
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
@@ -16,13 +17,24 @@ def init_db():
             last_exp_gain_date TEXT,
             daily_exp INTEGER DEFAULT 0,
             money INTEGER DEFAULT 0,
-            last_daily_claim TEXT,
-            inventory TEXT,
-            equipped_items TEXT
+            last_daily_claim TEXT
         )
     ''')
 
-    # Add columns if they don't exist
+    # Create the players table (MMORPG-related data)
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS players (
+            user_id INTEGER PRIMARY KEY,
+            health INTEGER DEFAULT 100,
+            attack INTEGER DEFAULT 10,
+            armor INTEGER DEFAULT 0,
+            inventory TEXT,
+            equipped_items TEXT,
+            FOREIGN KEY (user_id) REFERENCES users (user_id)
+        )
+    ''')
+
+    # Add columns to users table if they don't exist
     c.execute('PRAGMA table_info(users)')
     columns = [column[1] for column in c.fetchall()]
 
@@ -31,18 +43,66 @@ def init_db():
 
     if 'last_daily_claim' not in columns:
         c.execute('ALTER TABLE users ADD COLUMN last_daily_claim TEXT')
-        
-    if 'inventory' not in columns:
-        c.execute('ALTER TABLE users ADD COLUMN inventory TEXT')
-        
-    if 'equipped_items' not in columns:
-        c.execute('ALTER TABLE users ADD COLUMN equipped_items TEXT')
+    
+    if 'inventory' in columns:
+        # Step 1: Create a new table without the inventory column
+        c.execute('''
+            CREATE TABLE new_users (
+                user_id INTEGER PRIMARY KEY,
+                exp INTEGER DEFAULT 0,
+                level INTEGER DEFAULT 0,
+                last_activity TEXT,
+                role TEXT DEFAULT 'Gueux',
+                last_exp_gain_date TEXT,
+                daily_exp INTEGER DEFAULT 0,
+                money INTEGER DEFAULT 0,
+                last_daily_claim TEXT
+            )
+        ''')
 
+        # Step 2: Copy data from the old table to the new table
+        c.execute('''
+            INSERT INTO new_users (user_id, exp, level, last_activity, role, last_exp_gain_date, daily_exp, money, last_daily_claim)
+            SELECT user_id, exp, level, last_activity, role, last_exp_gain_date, daily_exp, money, last_daily_claim
+            FROM users
+        ''')
+
+        # Step 3: Drop the old table
+        c.execute('DROP TABLE users')
+
+        # Step 4: Rename the new table to the original table name
+        c.execute('ALTER TABLE new_users RENAME TO users')
+
+    # Add other columns to users table if they don't exist
+    if 'money' not in columns:
+        c.execute('ALTER TABLE users ADD COLUMN money INTEGER DEFAULT 0')
+
+    # Add columns to players table if they don't exist
+    c.execute('PRAGMA table_info(players)')
+    columns = [column[1] for column in c.fetchall()]
+
+    if 'health' not in columns:
+        c.execute('ALTER TABLE players ADD COLUMN health INTEGER DEFAULT 100')
+
+    if 'attack' not in columns:
+        c.execute('ALTER TABLE players ADD COLUMN attack INTEGER DEFAULT 10')
+
+    if 'armor' not in columns:
+        c.execute('ALTER TABLE players ADD COLUMN armor INTEGER DEFAULT 0')
+
+    if 'inventory' not in columns:
+        c.execute('ALTER TABLE players ADD COLUMN inventory TEXT')
+
+    if 'equipped_items' not in columns:
+        c.execute('ALTER TABLE players ADD COLUMN equipped_items TEXT')
 
     conn.commit()
     conn.close()
 
+"""///////////////////////GETTERS//////////////////////"""
+
 def get_user_data(user_id):
+    """Retrieve Discord-related user data."""
     conn = sqlite3.connect('user_data.db')
     c = conn.cursor()
     c.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
@@ -73,6 +133,33 @@ def get_all_users():
     # Return a list of user IDs
     return [{"id": user[0]} for user in users]
 
+def player_exists(user_id):
+    """Check if a player entry exists for the user."""
+    conn = sqlite3.connect('user_data.db')
+    c = conn.cursor()
+    c.execute('SELECT 1 FROM players WHERE user_id = ?', (user_id,))
+    exists = c.fetchone() is not None
+    conn.close()
+    return exists
+
+def get_player_data(user_id):
+    """Retrieve MMORPG-related player data."""
+    conn = sqlite3.connect('user_data.db')
+    c = conn.cursor()
+    c.execute('SELECT * FROM players WHERE user_id = ?', (user_id,))
+    player = c.fetchone()
+    conn.close()
+    if player:
+        return {
+            "user_id": player[0],
+            "health": player[1],
+            "attack": player[2],
+            "armor": player[3],
+            "inventory": json.loads(player[4]) if player[4] else [],
+            "equipped_items": json.loads(player[5]) if player[5] else {}
+        }
+    return None
+
 def get_user_inventory(user_id):
     """Retrieve only the user's inventory."""
     conn = sqlite3.connect('user_data.db')
@@ -97,6 +184,46 @@ def get_user_equipped_items(user_id):
         return json.loads(equipped_items_json[0])  # Deserialize JSON
     return {}
 
+"""///////////////////////SETTERS//////////////////////"""
+
+def update_user_data(user_id, **kwargs):
+    """Update Discord-related user data."""
+    conn = sqlite3.connect('user_data.db')
+    c = conn.cursor()
+    updates = []
+    params = []
+    for key, value in kwargs.items():
+        if value is not None:
+            updates.append(f"{key} = ?")
+            params.append(value.isoformat() if isinstance(value, datetime) else value)
+    params.append(user_id)
+    c.execute(f'UPDATE users SET {", ".join(updates)} WHERE user_id = ?', params)
+    conn.commit()
+    conn.close()
+
+def create_player(user_id):
+    """Create a new player entry in the players table."""
+    conn = sqlite3.connect('user_data.db')
+    c = conn.cursor()
+    c.execute('INSERT INTO players (user_id) VALUES (?)', (user_id,))
+    conn.commit()
+    conn.close()
+    
+def update_player_data(user_id, **kwargs):
+    """Update MMORPG-related player data."""
+    conn = sqlite3.connect('user_data.db')
+    c = conn.cursor()
+    updates = []
+    params = []
+    for key, value in kwargs.items():
+        if value is not None:
+            updates.append(f"{key} = ?")
+            params.append(json.dumps(value) if isinstance(value, (list, dict)) else value)
+    params.append(user_id)
+    c.execute(f'UPDATE players SET {", ".join(updates)} WHERE user_id = ?', params)
+    conn.commit()
+    conn.close()
+    
 def update_user_equipped_items(user_id, equipped_items):
     """Update only the user's equipped items."""
     conn = sqlite3.connect('user_data.db')
@@ -110,19 +237,5 @@ def update_user_inventory(user_id, inventory):
     conn = sqlite3.connect('user_data.db')
     c = conn.cursor()
     c.execute('UPDATE users SET inventory = ? WHERE user_id = ?', (json.dumps(inventory), user_id))
-    conn.commit()
-    conn.close()
-
-def update_user_data(user_id, **kwargs):
-    conn = sqlite3.connect('user_data.db')
-    c = conn.cursor()
-    updates = []
-    params = []
-    for key, value in kwargs.items():
-        if value is not None:
-            updates.append(f"{key} = ?")
-            params.append(value.isoformat() if isinstance(value, datetime) else value)
-    params.append(user_id)
-    c.execute(f'UPDATE users SET {", ".join(updates)} WHERE user_id = ?', params)
     conn.commit()
     conn.close()

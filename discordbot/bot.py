@@ -7,6 +7,7 @@ from commands import user_commands, admin_commands
 from commands.mmo_commands.combat import attack, farm
 from commands.mmo_commands.inventory import inv, equip, unequip, stuff
 from commands.mmo_commands.shop import shop, buy, sell
+from commands.mmo_commands.join import join
 
 # Initialize the database
 init_db()
@@ -44,6 +45,7 @@ bot.add_command(user_commands.roll)
 bot.add_command(admin_commands.admin)
 bot.add_command(admin_commands.bye)
 # MMO Commands
+bot.add_command(join)
 bot.add_command(attack)
 bot.add_command(farm)
 bot.add_command(inv)
