@@ -228,7 +228,7 @@ def update_user_equipped_items(user_id, equipped_items):
     """Update only the user's equipped items."""
     conn = sqlite3.connect('user_data.db')
     c = conn.cursor()
-    c.execute('UPDATE users SET equipped_items = ? WHERE user_id = ?', (json.dumps(equipped_items), user_id))
+    c.execute('UPDATE players SET equipped_items = ? WHERE user_id = ?', (json.dumps(equipped_items), user_id))
     conn.commit()
     conn.close()
     
@@ -236,6 +236,6 @@ def update_user_inventory(user_id, inventory):
     """Update only the user's inventory."""
     conn = sqlite3.connect('user_data.db')
     c = conn.cursor()
-    c.execute('UPDATE users SET inventory = ? WHERE user_id = ?', (json.dumps(inventory), user_id))
+    c.execute('UPDATE players SET inventory = ? WHERE user_id = ?', (json.dumps(inventory), user_id))
     conn.commit()
     conn.close()
