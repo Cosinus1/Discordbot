@@ -18,11 +18,11 @@ async def pve(ctx, difficulty="easy"):
     player = get_player_data(ctx.author.id)
     user = get_user_data(ctx.author.id)
     if not player:
-        await ctx.send("{ctx.author.mention} You are not registered as a player. Use `!join` to create a player profile.")
+        await ctx.send(f"{ctx.author.mention} You are not registered as a player. Use `!join` to create a player profile.")
         return
 
     if player.get("health", 100) <= 0:
-        await ctx.send("{ctx.author.mention} You are dead. Please wait 5 minutes to be reincarnated.")
+        await ctx.send(f"{ctx.author.mention} You are dead. Please wait 5 minutes to be reincarnated.")
         return
 
     # Get monster based on difficulty

@@ -1,4 +1,3 @@
-import json
 import random
 from classes.item_manager import item_manager
 
@@ -12,9 +11,9 @@ RARITY_MODIFIERS = {
         "attack_range": (8, 12),
         "defense_range": (4, 6),
         "gold_range": (5, 15),
-        "items": [
-            {"id": 1, "name": "Rusty Sword", "type": "weapon", "rarity": "common", "price": 5},
-            {"id": 2, "name": "Cloth Armor", "type": "armor", "rarity": "common", "price": 5}
+        "item_templates": [
+            {"name": "Rusty Sword", "type": "weapon", "price": 5},
+            {"name": "Cloth Armor", "type": "armor", "price": 5}
         ]
     },
     "rare": {
@@ -25,9 +24,9 @@ RARITY_MODIFIERS = {
         "attack_range": (15, 25),
         "defense_range": (8, 12),
         "gold_range": (40, 60),
-        "items": [
-            {"id": 3, "name": "Sturdy Shield", "type": "armor", "rarity": "rare", "price": 50},
-            {"id": 4, "name": "Iron Axe", "type": "weapon", "rarity": "rare", "price": 50}
+        "item_templates": [
+            {"name": "Sturdy Shield", "type": "armor", "price": 50},
+            {"name": "Iron Axe", "type": "weapon", "price": 50}
         ]
     },
     "epic": {
@@ -38,9 +37,9 @@ RARITY_MODIFIERS = {
         "attack_range": (30, 50),
         "defense_range": (20, 30),
         "gold_range": (300, 700),
-        "items": [
-            {"id": 5, "name": "Demonic Wand", "type": "weapon", "rarity": "epic", "price": 200},
-            {"id": 6, "name": "Crystal Armor", "type": "armor", "rarity": "epic", "price": 200}
+        "item_templates": [
+            {"name": "Demonic Wand", "type": "weapon", "price": 200},
+            {"name": "Crystal Armor", "type": "armor", "price": 200}
         ]
     },
     "legendary": {
@@ -51,9 +50,9 @@ RARITY_MODIFIERS = {
         "attack_range": (80, 120),
         "defense_range": (50, 70),
         "gold_range": (5000, 10000),
-        "items": [
-            {"id": 7, "name": "Obsidian Tooth", "type": "weapon", "rarity": "legendary", "price": 500},
-            {"id": 8, "name": "Dragon Scale Armor", "type": "armor", "rarity": "legendary", "price": 500}
+        "item_templates": [
+            {"name": "Obsidian Tooth", "type": "weapon", "price": 500},
+            {"name": "Dragon Scale Armor", "type": "armor", "price": 500}
         ]
     }
 }
@@ -81,18 +80,31 @@ def generate_monster_stats(rarity):
     
     return health, attack, defense, gold
 
-
 def generate_monster_rewards(rarity):
     """Generate rewards for a monster based on its rarity."""
     modifiers = RARITY_MODIFIERS.get(rarity, {})
     
-    # Generate gold and items
-    rewards = {
-        "gold": random.randint(*modifiers.get("gold_range", (10, 50))),
-        "items": item_manager.generate_monster_reward_items(rarity)
-    }
+    # Generate gold
+    gold = random.randint(*modifiers.get("gold_range", (10, 50)))
     
-    return rewards
+    # Generate items
+    item_templates = modifiers.get("item_templates", [])
+    num_items = random.randint(1, 2)  # Randomly choose 1-2 items to drop
+    items = []
+    for _ in range(num_items):
+        template = random.choice(item_templates)
+        item = item_manager.generate_item(
+            name=template["name"],
+            rarity=rarity,
+            price=template["price"],
+            item_type=template["type"]
+        )
+        items.append(item)
+    
+    return {
+        "gold": gold,
+        "items": items
+    }
 
 def get_monster(difficulty="easy"):
     """Get a random monster with generated stats, name, and rewards based on difficulty."""

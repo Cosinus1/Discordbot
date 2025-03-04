@@ -51,7 +51,7 @@ async def buy(ctx, item_reference: str):
     user["money"] -= item["price"]
     player["inventory"].append(item)
     update_player_data(ctx.author.id, inventory=player["inventory"])
-    update_user_data(ctx.author.id, money=player["money"])
+    update_user_data(ctx.author.id, money=user["money"])
 
     await ctx.send(f"You bought a {item['name']} (ID: {item['id']}, {item['rarity'].title()}) for {item['price']} gold!")
 
@@ -93,7 +93,7 @@ async def sell(ctx, item_reference: str):
     user["money"] += sell_price
     inventory.remove(item_to_sell)
     update_player_data(ctx.author.id, inventory=inventory)
-    update_user_data(ctx.author.id, money=player["money"])
+    update_user_data(ctx.author.id, money=user["money"])
 
     await ctx.send(f"You sold a {item_to_sell['name']} (ID: {item_to_sell['id']}, {item_to_sell['rarity'].title()}) for {sell_price} gold!")
 
