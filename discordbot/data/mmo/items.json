@@ -5,7 +5,7 @@
         "type": "weapon",
         "rarity": "common",
         "price": 50,
-        "attack": 10  // Attack power for weapons
+        "attack": 10
     },
     {
         "id": 2,
@@ -13,7 +13,7 @@
         "type": "armor",
         "rarity": "rare",
         "price": 100,
-        "armor": 5  // Armor value for armor
+        "armor": 5
     },
     {
         "id": 3,
@@ -21,7 +21,7 @@
         "type": "consumable",
         "rarity": "common",
         "price": 10,
-        "health_restore": 20  // Health restoration for potions
+        "health_restore": 20
     },
     {
         "id": 4,
@@ -29,7 +29,7 @@
         "type": "weapon",
         "rarity": "epic",
         "price": 200,
-        "attack": 25  // Attack power for weapons
+        "attack": 25
     },
     {
         "id": 5,
@@ -37,6 +37,6 @@
         "type": "armor",
         "rarity": "legendary",
         "price": 500,
-        "armor": 15  // Armor value for armor
+        "armor": 15
     }
 ]
