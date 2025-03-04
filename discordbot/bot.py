@@ -31,8 +31,8 @@ async def on_voice_state_update(member, before, after):
     await on_voice_state_update_handler.start(member, before, after)  # Call the on_voice_state_update function from the events module
 
 # Register tasks
-asyncio.check_inactivity.start()  # Start the background task
-asyncio.shop_tasks.refresh_shop_task()
+asyncio.create_task(check_inactivity.start())  # Start the background task
+asyncio.create_task(shop_tasks.refresh_shop_task())
 
 # Register commands
 # User Commands
