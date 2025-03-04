@@ -197,21 +197,6 @@ def get_player_equipped_items(user_id):
 
 """///////////////////////SETTERS//////////////////////"""
 
-def update_user_data(user_id, **kwargs):
-    """Update Discord-related user data."""
-    conn = sqlite3.connect('user_data.db')
-    c = conn.cursor()
-    updates = []
-    params = []
-    for key, value in kwargs.items():
-        if value is not None:
-            updates.append(f"{key} = ?")
-            params.append(value.isoformat() if isinstance(value, datetime) else value)
-    params.append(user_id)
-    c.execute(f'UPDATE users SET {", ".join(updates)} WHERE user_id = ?', params)
-    conn.commit()
-    conn.close()
-
 def create_player(user_id):
     """Create a new player entry in the players table."""
     conn = sqlite3.connect('user_data.db')
@@ -220,21 +205,70 @@ def create_player(user_id):
     conn.commit()
     conn.close()
     
-def update_player_data(user_id, **kwargs):
-    """Update MMORPG-related player data."""
-    conn = sqlite3.connect('user_data.db')
-    c = conn.cursor()
+def update_user_data(user_id, **kwargs):
+    """Update Discord-related user data."""
+    if not kwargs:
+        raise ValueError("No fields to update provided.")
+
+    valid_columns = [
+        "exp", "level", "last_activity", "role", 
+        "last_exp_gain_date", "daily_exp", "money", "last_daily_claim"
+    ]
     updates = []
     params = []
+
     for key, value in kwargs.items():
+        if key not in valid_columns:
+            raise ValueError(f"Invalid column name: {key}")
         if value is not None:
+            # Convert datetime to ISO format string
+            if isinstance(value, datetime):
+                value = value.isoformat()
             updates.append(f"{key} = ?")
-            params.append(json.dumps(value) if isinstance(value, (list, dict)) else value)
+            params.append(value)
+
+    if not updates:
+        raise ValueError("No valid fields to update.")
+
     params.append(user_id)
-    c.execute(f'UPDATE players SET {", ".join(updates)} WHERE user_id = ?', params)
-    conn.commit()
-    conn.close()
-    
+    query = f'UPDATE users SET {", ".join(updates)} WHERE user_id = ?'
+
+    with sqlite3.connect('user_data.db') as conn:
+        c = conn.cursor()
+        c.execute(query, params)
+        conn.commit()
+
+def update_player_data(user_id, **kwargs):
+    """Update MMORPG-related player data."""
+    if not kwargs:
+        raise ValueError("No fields to update provided.")
+
+    valid_columns = [
+        "health", "inventory", "equipped_items", "attack", "defense"
+    ]
+    updates = []
+    params = []
+
+    for key, value in kwargs.items():
+        if key not in valid_columns:
+            raise ValueError(f"Invalid column name: {key}")
+        if value is not None:
+            # Serialize lists or dicts to JSON strings
+            if isinstance(value, (list, dict)):
+                value = json.dumps(value)
+            updates.append(f"{key} = ?")
+            params.append(value)
+
+    if not updates:
+        raise ValueError("No valid fields to update.")
+
+    params.append(user_id)
+    query = f'UPDATE players SET {", ".join(updates)} WHERE user_id = ?'
+
+    with sqlite3.connect('user_data.db') as conn:
+        c = conn.cursor()
+        c.execute(query, params)
+        conn.commit()    
 def update_player_equipped_items(user_id, equipped_items):
     """Update only the user's equipped items."""
     conn = sqlite3.connect('user_data.db')
