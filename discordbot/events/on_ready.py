@@ -30,7 +30,8 @@ async def fetch_and_store_data(guild):
             print(f"{member.name} ajouté avec le rôle '{user_role}'.")
 
     if new_users:
-        update_user_data(new_users)  # Insérer en batch
+        for user in new_users:
+            update_user_data(user)
     else:
         print("Aucun nouveau membre à ajouter.")
 
