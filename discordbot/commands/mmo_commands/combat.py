@@ -78,3 +78,21 @@ async def attack(ctx, target: discord.Member):
     update_player_data(defender["user_id"], health=defender["health"])
 
     await ctx.send(f"{ctx.author.mention} attacked {target.mention} for {damage} damage!")
+    
+@commands.command()
+async def hp(ctx):
+    player = get_player_data(ctx.author.id)
+    if player:
+        current_hp = player["health"]
+        await ctx.send(f"{ctx.author.mention}, tu as actuellement {current_hp} HP." )
+    else:
+        await ctx.send(f"{ctx.author.mention}, aucune donnée trouvée pour toi.")
+        
+@commands.command()
+async def health(ctx):
+    player = get_player_data(ctx.author.id)
+    if player:
+        current_hp = player["health"]
+        await ctx.send(f"{ctx.author.mention}, tu as actuellement {current_hp} HP." )
+    else:
+        await ctx.send(f"{ctx.author.mention}, aucune donnée trouvée pour toi.")
