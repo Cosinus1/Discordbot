@@ -278,7 +278,7 @@ def update_player_data(user_id, **kwargs):
         raise ValueError("No fields to update provided.")
 
     valid_columns = [
-        "health", "inventory", "equipped_items", "attack", "defense"
+        "health", "inventory", "equipped_items", "attack", "armor"
     ]
     updates = []
     params = []
