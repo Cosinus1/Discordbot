@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['bot.py', 'events\\on_member_join.py', 'events\\on_message.py', 'events\\on_ready.py', 'events\\on_voice_state_update.py', 'tasks\\check_inactivity.py', 'data\\mmo\\shop_items.json', 'utils\\mmo_utils\\shop_utils.py', 'data\\mmo\\items.json', 'utils\\mmo_utils\\monster_utils.py', 'database.py', 'commands\\mmo_commands\\shop.py', 'commands\\mmo_commands\\inventory.py', 'commands\\mmo_commands\\combat.py']
+recent_files = ['bot.py', 'database.py', 'utils\\mmo_utils\\monster_utils.py', 'data\\mmo\\monsters.json', 'commands\\mmo_commands\\combat.py', 'utils\\mmo_utils\\combat_utils.py', 'commands\\mmo_commands\\inventory.py', 'commands\\mmo_commands\\shop.py', 'classes\\item_manager.py', 'data\\mmo\\shop_items.json', 'utils\\mmo_utils\\item_utils.py', 'utils\\mmo_utils\\shop_utils.py', 'data\\mmo\\items.json', 'commands\\admin_commands.py', 'tasks\\check_inactivity.py', 'config.py', 'commands\\user_commands.py', 'events\\on_ready.py', 'classes\\shop_manager.py', 'tasks\\shop_tasks.py', 'events\\on_member_join.py']
 
 [main]
 version = 0.2.0
