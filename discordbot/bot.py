@@ -46,6 +46,7 @@ bot.add_command(user_commands.send)
 bot.add_command(user_commands.roll)
 # Admin Commands
 bot.add_command(admin_commands.admin)
+bot.add_command(admin_commands.setallmoney)
 bot.add_command(admin_commands.bye)
 # MMO Commands
 bot.add_command(join)
