@@ -31,7 +31,18 @@ async def fetch_and_store_data(guild):
 
     if new_users:
         for user in new_users:
-            update_user_data(user)
+            # Unpack the user dictionary into keyword arguments
+            update_user_data(
+                user_id=user["user_id"],
+                exp=user["exp"],
+                level=user["level"],
+                last_activity=user["last_activity"],
+                role=user["role"],
+                last_exp_gain_date=user["last_exp_gain_date"],
+                daily_exp=user["daily_exp"],
+                money=user["money"],
+                last_daily_claim=user["last_daily_claim"]
+            )
     else:
         print("Aucun nouveau membre à ajouter.")
 

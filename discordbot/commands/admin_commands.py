@@ -27,6 +27,7 @@ async def admin(ctx, action: str, target: str, value: int = None):
 
     # Handle "all" target
     if target.lower() == "all":
+        await ctx.send("Processing 'all' targets ...")
         # Get all users or players based on the action
         if action in ["setlevel", "setmoney", "setexp"]:
             targets = get_all_users()
@@ -39,59 +40,62 @@ async def admin(ctx, action: str, target: str, value: int = None):
 
         # Apply the action to all targets
         for user_id in targets:
-            if action == "setlevel":
-                if value is None or value < 0:
-                    await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
-                    return
-                update_user_data(user_id, level=value)
-            elif action == "setmoney":
-                if value is None or value < 0:
-                    await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
-                    return
-                update_user_data(user_id, money=value)
-            elif action == "sethealth":
-                if value is None or value < 0:
-                    await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
-                    return
-                update_player_data(user_id, health=value)
-            elif action == "setexp":
-                if value is None or value < 0:
-                    await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
-                    return
-                update_user_data(user_id, exp=value)
-            elif action == "resetinventory":
-                update_player_data(user_id, inventory=[])
-            elif action == "revive":
-                update_player_data(user_id, health=100)
-            elif action == "kill":
-                update_player_data(user_id, health=0)
-            elif action == "additem":
-                if value is None:
-                    await ctx.send(f"{ctx.author.mention}, please specify an item ID.")
-                    return
-                item = item_manager.get_item_by_id(value)
-                if not item:
-                    await ctx.send(f"{ctx.author.mention}, item with ID {value} not found.")
-                    return
-                player_data = get_player_data(user_id)
-                if player_data:
-                    player_data["inventory"].append(item)
-                    update_player_data(user_id, inventory=player_data["inventory"])
-            elif action == "removeitem":
-                if value is None:
-                    await ctx.send(f"{ctx.author.mention}, please specify an item ID.")
-                    return
-                player_data = get_player_data(user_id)
-                if player_data:
-                    item_to_remove = None
-                    for item in player_data["inventory"]:
-                        if item["id"] == value:
-                            item_to_remove = item
-                            break
-                    if item_to_remove:
-                        player_data["inventory"].remove(item_to_remove)
+            try:
+                if action == "setlevel":
+                    if value is None or value < 0:
+                        await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
+                        return
+                    update_user_data(user_id, level=value)
+                elif action == "setmoney":
+                    if value is None or value < 0:
+                        await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
+                        return
+                    update_user_data(user_id, money=value)
+                elif action == "sethealth":
+                    if value is None or value < 0:
+                        await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
+                        return
+                    update_player_data(user_id, health=value)
+                elif action == "setexp":
+                    if value is None or value < 0:
+                        await ctx.send(f"{ctx.author.mention}, the value must be a positive number.")
+                        return
+                    update_user_data(user_id, exp=value)
+                elif action == "resetinventory":
+                    update_player_data(user_id, inventory=[])
+                elif action == "revive":
+                    update_player_data(user_id, health=100)
+                elif action == "kill":
+                    update_player_data(user_id, health=0)
+                elif action == "additem":
+                    if value is None:
+                        await ctx.send(f"{ctx.author.mention}, please specify an item ID.")
+                        return
+                    item = item_manager.get_item_by_id(value)
+                    if not item:
+                        await ctx.send(f"{ctx.author.mention}, item with ID {value} not found.")
+                        return
+                    player_data = get_player_data(user_id)
+                    if player_data:
+                        player_data["inventory"].append(item)
                         update_player_data(user_id, inventory=player_data["inventory"])
-
+                elif action == "removeitem":
+                    if value is None:
+                        await ctx.send(f"{ctx.author.mention}, please specify an item ID.")
+                        return
+                    player_data = get_player_data(user_id)
+                    if player_data:
+                        item_to_remove = None
+                        for item in player_data["inventory"]:
+                            if item["id"] == value:
+                                item_to_remove = item
+                                break
+                        if item_to_remove:
+                            player_data["inventory"].remove(item_to_remove)
+                            update_player_data(user_id, inventory=player_data["inventory"])
+            except Exception as e:
+                await ctx.send(f"{ctx.author.mention}, an error occurred: {str(e)}")
+                return
         await ctx.send(f"{ctx.author.mention}, applied `{action}` to all {'users' if action in ['setlevel', 'setmoney', 'setexp'] else 'players'}.")
         return
 
