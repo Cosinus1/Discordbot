@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from database import get_player_data, update_player_data
+from database import get_player_data, get_user_data, update_player_data, update_user_data
 from utils.mmo_utils.monster_utils import get_monster
 from utils.mmo_utils.combat_utils import simulate_combat, calculate_damage
 import random
@@ -16,6 +16,7 @@ async def pve(ctx, difficulty="easy"):
         return
     
     player = get_player_data(ctx.author.id)
+    user = get_user_data(ctx.author.id)
     if not player:
         await ctx.send("You are not registered as a player. Use `!join` to create a player profile.")
         return
@@ -40,7 +41,7 @@ async def pve(ctx, difficulty="easy"):
         gold = rewards.get("gold", 0)
         items = rewards.get("items", [])
 
-        player["money"] += gold
+        user["money"] += gold
         if items:
             item = random.choice(items)
             player["inventory"].append(item)
@@ -48,7 +49,8 @@ async def pve(ctx, difficulty="easy"):
         else:
             await ctx.send(f"You defeated the {monster['name']} and gained {gold} gold!")
 
-        update_player_data(ctx.author.id, money=player["money"], inventory=player["inventory"])
+        update_player_data(ctx.author.id, inventory=player["inventory"])
+        update_user_data(ctx.author.id, money=user["money"])
     else:
         # Player dies: set health to 0 and apply cooldown
         player["health"] = 0
