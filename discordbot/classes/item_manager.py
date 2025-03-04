@@ -1,6 +1,6 @@
 import json
 import random
-from utils.shop_utils import load_shop_items
+from utils.mmo_utils.shop_utils import load_shop_items
 class ItemManager:
     def __init__(self, items_file="data/mmo/items.json"):
         self.items_file = items_file
