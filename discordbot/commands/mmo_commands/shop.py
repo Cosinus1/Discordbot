@@ -1,5 +1,5 @@
 from discord.ext import commands
-from item_manager import item_manager
+from classes.item_manager import item_manager
 from database import get_player_data, update_player_data
 
 @commands.command()
