@@ -18,16 +18,16 @@ async def pve(ctx, difficulty="easy"):
     player = get_player_data(ctx.author.id)
     user = get_user_data(ctx.author.id)
     if not player:
-        await ctx.send("You are not registered as a player. Use `!join` to create a player profile.")
+        await ctx.send("{ctx.author.mention} You are not registered as a player. Use `!join` to create a player profile.")
         return
 
     if player.get("health", 100) <= 0:
-        await ctx.send("You are dead. Please wait 5 minutes to be reincarnated.")
+        await ctx.send("{ctx.author.mention} You are dead. Please wait 5 minutes to be reincarnated.")
         return
 
     # Get monster based on difficulty
     monster = get_monster(difficulty.lower())
-    await ctx.send(f"You encountered a {monster['name']} ({monster['rarity'].title()})!")
+    await ctx.send(f"{ctx.author.mention} You encountered a {monster['name']} ({monster['rarity'].title()})!")
 
     # Simulate combat
     combat_log, player_wins = simulate_combat(player, monster)
@@ -45,9 +45,9 @@ async def pve(ctx, difficulty="easy"):
         if items:
             item = random.choice(items)
             player["inventory"].append(item)
-            await ctx.send(f"You defeated the {monster['name']} and gained {gold} gold and a {item['name']}!")
+            await ctx.send(f"{ctx.author.mention} You defeated the {monster['name']} and gained {gold} gold and a {item['name']}!")
         else:
-            await ctx.send(f"You defeated the {monster['name']} and gained {gold} gold!")
+            await ctx.send(f"{ctx.author.mention} You defeated the {monster['name']} and gained {gold} gold!")
 
         update_player_data(ctx.author.id, inventory=player["inventory"])
         update_user_data(ctx.author.id, money=user["money"])
@@ -55,13 +55,13 @@ async def pve(ctx, difficulty="easy"):
         # Player dies: set health to 0 and apply cooldown
         player["health"] = 0
         update_player_data(ctx.author.id, health=player["health"])
-        await ctx.send("You died. Please wait 5 minutes to be reincarnated.")
+        await ctx.send("{ctx.author.mention} You died. Please wait 5 minutes to be reincarnated.")
 
         # Reincarnate after 5 minutes
         await asyncio.sleep(300)  # 5 minutes
         player["health"] = 100
         update_player_data(ctx.author.id, health=player["health"])
-        await ctx.send("You have been reincarnated with full health!")
+        await ctx.send("{ctx.author.mention} You have been reincarnated with full health!")
         
 
 @commands.command()
