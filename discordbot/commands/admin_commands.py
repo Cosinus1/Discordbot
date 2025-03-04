@@ -212,9 +212,16 @@ async def setallmoney(ctx, value: int):
         await ctx.send(f"{ctx.author.mention}, you do not have permission to use this command.")
         return
     targets = get_all_users()
-    for target in targets :
-        update_player_data(target.id, money = value)
-        
+    print(targets)
+    try:
+        await ctx.send("setting all users money to {value} ...")
+        for target in targets :
+            update_player_data(target["id"], money = value)
+        await ctx.send("setting all users money to {value} ...")
+    except Exception as e:
+        await ctx.send(f"{ctx.author.mention}, an error occurred: {str(e)}")
+    
+            
 @commands.command()
 async def bye(ctx):
     """Stop the bot and process XP for users in voice channels."""
