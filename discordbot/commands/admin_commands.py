@@ -214,10 +214,10 @@ async def setallmoney(ctx, value: int):
     targets = get_all_users()
     print(targets)
     try:
-        await ctx.send("setting all users money to {value} ...")
+        await ctx.send(f"setting all users money to {value} ...")
         for target in targets :
             update_user_data(target["id"], money = value)
-        await ctx.send("setting all users money to {value} ...")
+        await ctx.send("Done.")
     except Exception as e:
         await ctx.send(f"{ctx.author.mention}, an error occurred: {str(e)}")
     
