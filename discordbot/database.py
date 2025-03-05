@@ -27,74 +27,12 @@ def init_db():
             user_id INTEGER PRIMARY KEY,
             health INTEGER DEFAULT 100,
             attack INTEGER DEFAULT 10,
-            armor INTEGER DEFAULT 0,
+            stats TEXT DEFAULT {},
             inventory TEXT,
             equipped_items TEXT,
             FOREIGN KEY (user_id) REFERENCES users (user_id)
         )
     ''')
-
-    # Add columns to users table if they don't exist
-    c.execute('PRAGMA table_info(users)')
-    columns = [column[1] for column in c.fetchall()]
-
-    if 'money' not in columns:
-        c.execute('ALTER TABLE users ADD COLUMN money INTEGER DEFAULT 0')
-
-    if 'last_daily_claim' not in columns:
-        c.execute('ALTER TABLE users ADD COLUMN last_daily_claim TEXT')
-    
-    if 'inventory' in columns:
-        # Step 1: Create a new table without the inventory column
-        c.execute('''
-            CREATE TABLE new_users (
-                user_id INTEGER PRIMARY KEY,
-                exp INTEGER DEFAULT 0,
-                level INTEGER DEFAULT 0,
-                last_activity TEXT,
-                role TEXT DEFAULT 'Gueux',
-                last_exp_gain_date TEXT,
-                daily_exp INTEGER DEFAULT 0,
-                money INTEGER DEFAULT 0,
-                last_daily_claim TEXT
-            )
-        ''')
-
-        # Step 2: Copy data from the old table to the new table
-        c.execute('''
-            INSERT INTO new_users (user_id, exp, level, last_activity, role, last_exp_gain_date, daily_exp, money, last_daily_claim)
-            SELECT user_id, exp, level, last_activity, role, last_exp_gain_date, daily_exp, money, last_daily_claim
-            FROM users
-        ''')
-
-        # Step 3: Drop the old table
-        c.execute('DROP TABLE users')
-
-        # Step 4: Rename the new table to the original table name
-        c.execute('ALTER TABLE new_users RENAME TO users')
-
-    # Add other columns to users table if they don't exist
-    if 'money' not in columns:
-        c.execute('ALTER TABLE users ADD COLUMN money INTEGER DEFAULT 0')
-
-    # Add columns to players table if they don't exist
-    c.execute('PRAGMA table_info(players)')
-    columns = [column[1] for column in c.fetchall()]
-
-    if 'health' not in columns:
-        c.execute('ALTER TABLE players ADD COLUMN health INTEGER DEFAULT 100')
-
-    if 'attack' not in columns:
-        c.execute('ALTER TABLE players ADD COLUMN attack INTEGER DEFAULT 10')
-
-    if 'armor' not in columns:
-        c.execute('ALTER TABLE players ADD COLUMN armor INTEGER DEFAULT 0')
-
-    if 'inventory' not in columns:
-        c.execute('ALTER TABLE players ADD COLUMN inventory TEXT')
-
-    if 'equipped_items' not in columns:
-        c.execute('ALTER TABLE players ADD COLUMN equipped_items TEXT')
 
     conn.commit()
     conn.close()
@@ -165,7 +103,7 @@ def get_player_data(user_id):
             "user_id": player[0],
             "health": player[1],
             "attack": player[2],
-            "armor": player[3],
+            "stats": json.loads(player[3]) if player[3] else {},  # Deserialize stats
             "inventory": json.loads(player[4]) if player[4] else [],
             "equipped_items": json.loads(player[5]) if player[5] else {}
         }
@@ -194,6 +132,14 @@ def get_player_equipped_items(user_id):
     if equipped_items_json and equipped_items_json[0]:
         return json.loads(equipped_items_json[0])  # Deserialize JSON
     return {}
+
+def get_player_stat(user_id, stat_name):
+    """Retrieve a specific stat for a player."""
+    player = get_player_data(user_id)
+    if player:
+        return player["stats"].get(stat_name, 0)  # Default to 0 if stat doesn't exist
+    return 0
+
 
 """///////////////////////SETTERS//////////////////////"""
 
@@ -278,7 +224,7 @@ def update_player_data(user_id, **kwargs):
         raise ValueError("No fields to update provided.")
 
     valid_columns = [
-        "health", "inventory", "equipped_items", "attack", "armor"
+        "health", "inventory", "equipped_items", "attack", "stats"
     ]
     updates = []
     params = []
@@ -318,3 +264,17 @@ def update_player_inventory(user_id, inventory):
     c.execute('UPDATE players SET inventory = ? WHERE user_id = ?', (json.dumps(inventory), user_id))
     conn.commit()
     conn.close()
+
+def set_player_stat(user_id, stat_name, value):
+    """Set a specific stat for a player."""
+    player = get_player_data(user_id)
+    if player:
+        player["stats"][stat_name] = value
+        update_player_data(user_id, stats=player["stats"])
+
+def increment_player_stat(user_id, stat_name, amount):
+    """Increment a specific stat for a player."""
+    player = get_player_data(user_id)
+    if player:
+        player["stats"][stat_name] = player["stats"].get(stat_name, 0) + amount
+        update_player_data(user_id, stats=player["stats"])

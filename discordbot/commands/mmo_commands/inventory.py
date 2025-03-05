@@ -1,5 +1,5 @@
 from discord.ext import commands
-from database import get_user_data, get_player_data, update_player_data, update_user_data
+from database import get_user_data, get_player_data, update_player_data, update_user_data,increment_player_stat
 from classes.item_manager import item_manager
 
 import threading
@@ -49,48 +49,38 @@ async def stats(ctx):
     
 @commands.command()
 async def equip(ctx, item_id: int):
-    """Equip an item from the user's inventory."""
     with lock:
         player = get_player_data(ctx.author.id)
         if not player:
             await ctx.send("You are not registered as a player.")
             return
-
+    
         inventory = player["inventory"]
         if not inventory:
             await ctx.send("Your inventory is empty.")
             return
-
+    
         # Find the item in the inventory
         item_to_equip = None
         for item in inventory:
             if item["id"] == item_id:
                 item_to_equip = item
                 break
-
+    
         if not item_to_equip:
             await ctx.send("Item not found in your inventory.")
             return
-
-        # Get currently equipped items
+    
+        # Apply item stats to the player
+        for stat, value in item_to_equip.get("stats", {}).items():
+            increment_player_stat(ctx.author.id, stat, value)
+    
+        # Equip the item
         equipped_items = player["equipped_items"]
-
-        # Check if the item type is already equipped
-        if item_to_equip["type"] in equipped_items:
-            await ctx.send(f"You already have a {item_to_equip['type']} equipped.")
-            return
-
-        # Equip the item and update player stats
-        if item_to_equip["type"] == "weapon":
-            player["attack"] += item_to_equip.get("attack", 0)
-        elif item_to_equip["type"] == "armor":
-            player["armor"] += item_to_equip.get("armor", 0)
-
         equipped_items[item_to_equip["type"]] = item_to_equip
-        update_player_data(ctx.author.id, equipped_items=equipped_items, attack=player["attack"], armor=player["armor"])
-
+        update_player_data(ctx.author.id, equipped_items=equipped_items)
+    
         await ctx.send(f"You equipped {item_to_equip['name']} (ID: {item_to_equip['id']}, {item_to_equip['type'].title()}).")
-
 @commands.command()
 async def unequip(ctx, item_type: str):
     """Unequip an item."""
