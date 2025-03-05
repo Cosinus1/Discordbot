@@ -1,24 +1,38 @@
 import random
 from classes.item_manager import item_manager
+import threading
 
-class Shop_manager:
+class ShopManager:
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            with cls._lock:
+                if not cls._instance:
+                    cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self):
-        self.items = []
-        self.potions = []
-        self.refresh_shop()
+        if not hasattr(self, 'initialized'):
+            self.items = []
+            self.potions = []
+            self.refresh_shop()
+            self.initialized = True
 
     def refresh_shop(self):
         """Refresh the shop's items."""
-        self.items = []
-        self.potions = []
+        with self._lock:
+            self.items = []
+            self.potions = []
 
-        # Add at least one item of each rarity
-        rarities = ["common", "rare", "epic", "legendary"]
-        for rarity in rarities:
-            self.items.append(self.generate_shop_item(rarity))
+            # Add at least one item of each rarity
+            rarities = ["common", "rare", "epic", "legendary"]
+            for rarity in rarities:
+                self.items.append(self.generate_shop_item(rarity))
 
-        # Add unlimited potions
-        self.potions.append(self.generate_potion())
+            # Add unlimited potions
+            self.potions.append(self.generate_potion())
 
     def generate_shop_item(self, rarity):
         """Generate a shop item of the specified rarity."""
@@ -49,11 +63,12 @@ class Shop_manager:
 
     def replace_sold_item(self, item_id):
         """Replace a sold item with a new one of the same rarity."""
-        sold_item = next((item for item in self.items if item["id"] == item_id), None)
-        if sold_item:
-            rarity = sold_item["rarity"]
-            self.items.remove(sold_item)
-            self.items.append(self.generate_shop_item(rarity))
+        with self._lock:
+            sold_item = next((item for item in self.items if item["id"] == item_id), None)
+            if sold_item:
+                rarity = sold_item["rarity"]
+                self.items.remove(sold_item)
+                self.items.append(self.generate_shop_item(rarity))
 
 # Singleton instance of Shop
-shop_manager = Shop_manager()
+shop_manager = ShopManager()
