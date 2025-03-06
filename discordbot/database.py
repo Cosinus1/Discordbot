@@ -249,6 +249,7 @@ def update_player_data(user_id, **kwargs):
         c = conn.cursor()
         c.execute(query, params)
         conn.commit()    
+        
 def update_player_equipped_items(user_id, equipped_items):
     """Update only the user's equipped items."""
     conn = sqlite3.connect('user_data.db')
@@ -276,5 +277,11 @@ def increment_player_stat(user_id, stat_name, amount):
     """Increment a specific stat for a player."""
     player = get_player_data(user_id)
     if player:
-        player["stats"][stat_name] = player["stats"].get(stat_name, 0) + amount
-        update_player_data(user_id, stats=player["stats"])
+        # Deal case stats other than hp or ad
+        if stat_name != ("health" or "attack"):
+            player["stats"][stat_name] = player["stats"].get(stat_name, 0) + amount
+            update_player_data(user_id, stats=player["stats"])
+        # Deal hp or ad case
+        else:
+            player[stat_name]+= amount
+            update_player_data(user_id, player[stat_name])

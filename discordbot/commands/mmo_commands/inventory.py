@@ -26,7 +26,7 @@ async def inv(ctx):
 
 @commands.command()
 async def stats(ctx):
-    """Display the player's health, attack, and armor."""
+    """Display the player's health, attack, and other stats."""
     player = get_player_data(ctx.author.id)
     if not player:
         await ctx.send("You are not registered as a player. (type `!join` to play)")
@@ -35,14 +35,14 @@ async def stats(ctx):
     # Fetch player stats
     health = player.get("health", 0)
     attack = player.get("attack", 0)
-    armor = player.get("armor", 0)
+    stats = player.get("stats", 0)
 
     # Format the stats for display
     stats_message = (
         f"**{ctx.author.display_name}'s Stats:**\n"
         f"❤️ **Health:** {health}\n"
         f"⚔️ **Attack:** {attack}\n"
-        f"🛡️ **Armor:** {armor}"
+        f"🛡️ **Others:** {stats}"
     )
 
     await ctx.send(stats_message)
