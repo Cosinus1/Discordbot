@@ -27,7 +27,7 @@ def init_db():
             user_id INTEGER PRIMARY KEY,
             health INTEGER DEFAULT 100,
             attack INTEGER DEFAULT 10,
-            stats TEXT DEFAULT {},
+            stats TEXT DEFAULT '{}',
             inventory TEXT,
             equipped_items TEXT,
             FOREIGN KEY (user_id) REFERENCES users (user_id)
