@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['bot.py', 'database.py', 'commands\\admin_commands.py', 'utils\\mmo_utils\\monster_utils.py', 'commands\\mmo_commands\\combat.py', 'classes\\item_manager.py', 'classes\\shop_manager.py', 'commands\\mmo_commands\\shop.py', 'commands\\mmo_commands\\inventory.py']
+recent_files = ['bot.py', 'database.py', 'commands\\admin_commands.py', 'utils\\mmo_utils\\monster_utils.py', 'commands\\mmo_commands\\combat.py', 'classes\\item_manager.py', 'classes\\shop_manager.py', 'commands\\mmo_commands\\shop.py', 'commands\\mmo_commands\\inventory.py', '.gitignore']
 
 [main]
 version = 0.2.0
