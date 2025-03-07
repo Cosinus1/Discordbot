@@ -273,20 +273,6 @@ def set_player_stat(user_id, stat_name, value):
         player["stats"][stat_name] = value
         update_player_data(user_id, stats=player["stats"])
 
-# def increment_player_stat(user_id, stat_name, amount):
-#     """Increment a specific stat for a player."""
-#     player = get_player_data(user_id)
-#     if player:
-#         # Deal case stats other than hp or ad
-#         print("statname : ", stat_name)
-#         print("player[stat_name] : ", player[stat_name])
-#         if stat_name != ("health" or "attack"):
-#             player["stats"][stat_name] = player["stats"].get(stat_name, 0) + amount
-#             update_player_data(user_id, stats=player["stats"])
-#         # Deal hp or ad case
-#         else:
-#             player[stat_name]+= amount
-#             update_player_data(user_id, player[stat_name])
             
 def increment_player_stat(user_id, stat_name, amount):
     """Increment a specific stat for a player."""

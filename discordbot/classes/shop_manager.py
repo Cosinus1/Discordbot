@@ -31,6 +31,8 @@ class ShopManager:
             rarities = ["common", "rare", "epic", "legendary"]
             for rarity in rarities:
                 self.items.append(self.generate_shop_item(rarity))
+            # Generate unlimited stack of potions
+            self.potions.append(self.generate_potion())
 
     def generate_shop_item(self, rarity):
         """Generate a shop item of the specified rarity."""

@@ -56,9 +56,10 @@ async def stats(ctx):
         f"**{ctx.author.display_name}'s Stats:**\n"
         f"❤️ **Health:** {health}\n"
         f"⚔️ **Attack:** {attack}\n"
-        f"🛡️ **Others:** {stats}"
     )
-
+    if stats:
+        for stat, value in stats.items():
+            stats_message += f"    - **{stat.replace('_', ' ').title()}:** {value}\n"
     await ctx.send(stats_message)
     
 @commands.command()
