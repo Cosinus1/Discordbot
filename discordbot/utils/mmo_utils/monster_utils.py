@@ -9,11 +9,14 @@ RARITY_MODIFIERS = {
         "base_names": ["Goblin", "Slime", "Rat"],
         "health_range": (40, 60),
         "attack_range": (8, 12),
-        "defense_range": (4, 6),
+        "armor_range": (4, 6),
         "gold_range": (5, 15),
         "item_templates": [
-            {"name": "Rusty Sword", "type": "weapon", "price": 200},
-            {"name": "Cloth Armor", "type": "armor", "price": 150}
+            {"name": "Rusty Sword", "type": "weapon"},
+            {"name": "Cloth Armor", "type": "chest"},
+            {"name": "Leather Boots", "type": "feet"},
+            {"name": "Wooden Shield", "type": "shield"},
+            {"name": "Health Potion", "type": "consumable"}
         ]
     },
     "rare": {
@@ -22,11 +25,14 @@ RARITY_MODIFIERS = {
         "base_names": ["Orc", "Troll", "Wolf"],
         "health_range": (80, 120),
         "attack_range": (15, 25),
-        "defense_range": (8, 12),
+        "armor_range": (8, 12),
         "gold_range": (40, 60),
         "item_templates": [
-            {"name": "Sturdy Shield", "type": "armor", "price": 500},
-            {"name": "Iron Axe", "type": "weapon", "price": 400}
+            {"name": "Iron Axe", "type": "weapon"},
+            {"name": "Chainmail Armor", "type": "chest"},
+            {"name": "Steel Helmet", "type": "helm"},
+            {"name": "Reinforced Shield", "type": "shield"},
+            {"name": "Health Potion", "type": "consumable"}
         ]
     },
     "epic": {
@@ -35,11 +41,14 @@ RARITY_MODIFIERS = {
         "base_names": ["Demon", "Elemental", "Giant"],
         "health_range": (400, 600),
         "attack_range": (30, 50),
-        "defense_range": (20, 30),
+        "armor_range": (20, 30),
         "gold_range": (300, 700),
         "item_templates": [
-            {"name": "Demonic Wand", "type": "weapon", "price": 1200},
-            {"name": "Crystal Armor", "type": "armor", "price": 1000}
+            {"name": "Demonic Wand", "type": "weapon"},
+            {"name": "Crystal Armor", "type": "chest"},
+            {"name": "Dragonbone Helm", "type": "helm"},
+            {"name": "Tower Shield", "type": "shield"},
+            {"name": "Health Potion", "type": "consumable"}
         ]
     },
     "legendary": {
@@ -48,11 +57,14 @@ RARITY_MODIFIERS = {
         "base_names": ["Dragon", "Phoenix", "Leviathan"],
         "health_range": (1000, 1500),
         "attack_range": (80, 120),
-        "defense_range": (50, 70),
-        "gold_range": (5000, 10000),
+        "armor_range": (50, 70),
+        "gold_range": (5000, 7000),
         "item_templates": [
-            {"name": "Obsidian Tooth", "type": "weapon", "price": 5500},
-            {"name": "Dragon Scale Armor", "type": "armor", "price": 4800}
+            {"name": "Obsidian Tooth", "type": "weapon"},
+            {"name": "Dragon Scale Armor", "type": "chest"},
+            {"name": "Crown of the Ancients", "type": "helm"},
+            {"name": "Aegis of Immortality", "type": "shield"},
+            {"name": "Health Potion", "type": "consumable"}
         ]
     }
 }
@@ -75,10 +87,10 @@ def generate_monster_stats(rarity):
     modifiers = RARITY_MODIFIERS.get(rarity, {})
     health = random.randint(*modifiers.get("health_range", (50, 100)))
     attack = random.randint(*modifiers.get("attack_range", (10, 20)))
-    defense = random.randint(*modifiers.get("defense_range", (5, 10)))
+    armor = random.randint(*modifiers.get("armor_range", (5, 10)))
     gold = random.randint(*modifiers.get("gold_range", (10, 50)))
     
-    return health, attack, defense, gold
+    return health, attack, armor, gold
 
 def generate_monster_rewards(rarity):
     """Generate rewards for a monster based on its rarity."""
@@ -89,17 +101,27 @@ def generate_monster_rewards(rarity):
     
     # Generate items
     item_templates = modifiers.get("item_templates", [])
-    num_items = random.randint(1, 2)  # Randomly choose 1-2 items to drop
     items = []
+
+    # Randomly choose 1-2 items to drop
+    num_items = random.randint(1, 2)
     for _ in range(num_items):
         template = random.choice(item_templates)
         item = item_manager.generate_item(
             name=template["name"],
             rarity=rarity,
-            price=template["price"],
             item_type=template["type"]
         )
         items.append(item)
+    
+    # 10% chance to drop an additional potion
+    if random.random() < 0.1:
+        potion = item_manager.generate_item(
+            name="Health Potion",
+            rarity="common",
+            item_type="consumable"
+        )
+        items.append(potion)
     
     return {
         "gold": gold,
@@ -129,9 +151,10 @@ def get_monster(difficulty="easy"):
     # Generate monster based on rarity
     monster = {
         "name": generate_monster_name(base_rarity),
+        "NPC": True,
         "health": generate_monster_stats(base_rarity)[0],
         "attack": generate_monster_stats(base_rarity)[1],
-        "defense": generate_monster_stats(base_rarity)[2],
+        "armor": generate_monster_stats(base_rarity)[2],
         "rarity": base_rarity,
         "rewards": generate_monster_rewards(base_rarity)
     }

@@ -3,7 +3,7 @@ import random
 def calculate_damage(attacker, defender):
     """Calculate damage dealt by the attacker to the defender."""
     # Base damage calculation
-    base_damage = attacker.get("attack", 0) - defender.get("stats", {}).get("armor", 0)
+    base_damage = attacker.get("attack", 0) - defender.get("stats", {}).get("armor", 0)/(attacker.get("stats", {}).get("armor_penetration", 1))
     base_damage = max(1, base_damage)  # Ensure at least 1 damage
 
     # Critical hit chance
