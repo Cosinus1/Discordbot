@@ -278,6 +278,8 @@ def increment_player_stat(user_id, stat_name, amount):
     player = get_player_data(user_id)
     if player:
         # Deal case stats other than hp or ad
+        print("statname : ", stat_name)
+        print("player[stat_name] : ", player[stat_name])
         if stat_name != ("health" or "attack"):
             player["stats"][stat_name] = player["stats"].get(stat_name, 0) + amount
             update_player_data(user_id, stats=player["stats"])
