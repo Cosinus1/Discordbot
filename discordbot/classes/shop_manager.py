@@ -44,7 +44,7 @@ class ShopManager:
 
     def generate_potion(self):
         """Generate a potion."""
-        return item_manager.generate_item("Health Potion", "common", "consumable")
+        return item_manager.generate_item(name="Health Potion", item_type="consumable", effect = 50)
 
     def replace_sold_item(self, item_id):
         """Replace a sold item with a new one of the same rarity."""

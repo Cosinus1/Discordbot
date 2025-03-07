@@ -1,5 +1,6 @@
 from discord.ext import commands
 from database import get_player_data, update_player_data,increment_player_stat
+from classes.item_manager import item_manager
 import threading
 
 lock = threading.Lock()
@@ -18,25 +19,53 @@ async def inv(ctx):
             await ctx.send("Your inventory is empty.")
             return
 
-        # Format inventory for display
-        inventory_list = []
-        for idx, item in enumerate(inventory):
+        # Group potions by name and count them
+        potion_counts = {}
+        equipment_items = []
+
+        for item in inventory:
+            if item["type"] == "consumable":
+                potion_name = item["name"]
+                if potion_name in potion_counts:
+                    potion_counts[potion_name] += 1
+                else:
+                    potion_counts[potion_name] = 1
+            else:
+                equipment_items.append(item)
+
+        # Format potions for display
+        potion_list = []
+        for potion_name, count in potion_counts.items():
+            potion_list.append(f"  - **{potion_name}:** {count}")
+
+        # Format equipment for display
+        equipment_list = []
+        for idx, item in enumerate(equipment_items):
             item_info = (
                 f"**{idx + 1}. {item['name']}**\n"
                 f"  - **ID:** {item['id']}\n"
                 f"  - **Type:** {item['type'].title()}\n"
                 f"  - **Rarity:** {item['rarity'].title()}\n"
                 f"  - **Price:** {item['price']} gold\n"
-                f"  - **Stats:**\n"
             )
             # Add stats if they exist
             if "stats" in item:
+                item_info += "  - **Stats:**\n"
                 for stat, value in item["stats"].items():
                     item_info += f"    - **{stat.replace('_', ' ').title()}:** {value}\n"
-            inventory_list.append(item_info)
+            equipment_list.append(item_info)
+
+        # Combine potions and equipment into a single message
+        inventory_message = "**Your Inventory:**\n\n"
+
+        if potion_list:
+            inventory_message += "**Potions:**\n" + "\n".join(potion_list) + "\n\n"
+
+        if equipment_list:
+            inventory_message += "**Equipment:**\n" + "\n".join(equipment_list)
 
         # Send the formatted inventory
-        await ctx.send(f"**Your Inventory:**\n\n" + "\n".join(inventory_list))
+        await ctx.send(inventory_message)
 
 @commands.command()
 async def stats(ctx):
@@ -139,7 +168,7 @@ async def stuff(ctx):
         await ctx.send(f"**Your Equipped Items:**\n{equipped_list}")
 
 @commands.command()
-async def use(ctx, item_id: int):
+async def use(ctx, item_reference: str):
     """Use a consumable item (e.g., health potion)."""
     with lock:
         player = get_player_data(ctx.author.id)
@@ -154,27 +183,44 @@ async def use(ctx, item_id: int):
 
         # Find the item in the inventory
         item_to_use = None
-        for item in inventory:
-            if item["id"] == item_id:
-                item_to_use = item
-                break
 
-        if not item_to_use:
-            await ctx.send("Item not found in your inventory.")
-            return
+        if item_reference.lower() == "potion":
+            # Find the first health potion in the inventory
+            for item in inventory:
+                if item["type"] == "consumable" and item["name"].lower() == "health potion":
+                    item_to_use = item
+                    break
+            if not item_to_use:
+                await ctx.send("You don't have any health potions in your inventory.")
+                return
+        else:
+            # Try to find the item by ID
+            if item_reference.isdigit():
+                item_id = int(item_reference)
+                item_to_use = next((item for item in inventory if item["id"] == item_id), None)
+            else:
+                # Try to find the item by name
+                item_to_use = next((item for item in inventory if item["name"].lower() == item_reference.lower()), None)
 
-        if item_to_use["type"] != "consumable":
-            await ctx.send("You can only use consumable items.")
-            return
+            if not item_to_use:
+                await ctx.send("Item not found in your inventory.")
+                return
+
+            # Check if the item is a consumable
+            if item_to_use["type"] != "consumable":
+                await ctx.send("You can only use consumable items.")
+                return
 
         # Apply the item's effect
-        if "health_restore" in item_to_use:
-            player["health"] = min(100, player["health"] + item_to_use["health_restore"])
+        if "effect" in item_to_use:
+            health_restored = item_to_use["effect"]
+            player["health"] = min(100, player["health"] + health_restored)
             update_player_data(ctx.author.id, health=player["health"])
-            await ctx.send(f"You used {item_to_use['name']} (ID: {item_to_use['id']}) and restored {item_to_use['health_restore']} health.")
+            await ctx.send(f"You used {item_to_use['name']} (ID: {item_to_use['id']}) and restored {health_restored} health.")
         else:
             await ctx.send("This item has no effect.")
 
         # Remove the item from the inventory
         inventory.remove(item_to_use)
+        item_manager.remove_item(item_to_use["id"])
         update_player_data(ctx.author.id, inventory=inventory)
