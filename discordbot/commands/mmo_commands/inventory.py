@@ -1,7 +1,5 @@
 from discord.ext import commands
-from database import get_user_data, get_player_data, update_player_data, update_user_data,increment_player_stat
-from classes.item_manager import item_manager
-
+from database import get_player_data, update_player_data,increment_player_stat
 import threading
 
 lock = threading.Lock()
@@ -21,8 +19,24 @@ async def inv(ctx):
             return
 
         # Format inventory for display
-        inventory_list = "\n".join([f"{idx + 1}. {item['name']} (ID: {item['id']}, {item['type'].title()}, {item['rarity'].title()})" for idx, item in enumerate(inventory)])
-        await ctx.send(f"**Your Inventory:**\n{inventory_list}")
+        inventory_list = []
+        for idx, item in enumerate(inventory):
+            item_info = (
+                f"**{idx + 1}. {item['name']}**\n"
+                f"  - **ID:** {item['id']}\n"
+                f"  - **Type:** {item['type'].title()}\n"
+                f"  - **Rarity:** {item['rarity'].title()}\n"
+                f"  - **Price:** {item['price']} gold\n"
+                f"  - **Stats:**\n"
+            )
+            # Add stats if they exist
+            if "stats" in item:
+                for stat, value in item["stats"].items():
+                    item_info += f"    - **{stat.replace('_', ' ').title()}:** {value}\n"
+            inventory_list.append(item_info)
+
+        # Send the formatted inventory
+        await ctx.send(f"**Your Inventory:**\n\n" + "\n".join(inventory_list))
 
 @commands.command()
 async def stats(ctx):

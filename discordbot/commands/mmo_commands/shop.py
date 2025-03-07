@@ -99,5 +99,6 @@ async def sell(ctx, item_reference: str):
         inventory.remove(item_to_sell)
         update_player_data(ctx.author.id, inventory=inventory)
         update_user_data(ctx.author.id, money=user["money"])
+        item_manager.remove_item(item_to_sell["id"])
 
         await ctx.send(f"You sold a {item_to_sell['name']} (ID: {item_to_sell['id']}, {item_to_sell['rarity'].title()}) for {sell_price} gold!")
