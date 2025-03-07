@@ -6,6 +6,7 @@ from config import DAILY_EXP_THRESHOLD, EXP_PAR_MINUTE_VOCAL
 from events.on_voice_state_update import user_join_times
 from config import bot
 from classes.item_manager import item_manager
+from classes.shop_manager import shop_manager
 
 
 @commands.command()
@@ -188,7 +189,19 @@ async def setallmoney(ctx, value: int):
         await ctx.send("Done.")
     except Exception as e:
         await ctx.send(f"{ctx.author.mention}, an error occurred: {str(e)}")
-    
+
+@commands.command()
+async def refresh(ctx):
+    """Admin command to refresh the shop."""
+    # Check if the user has the 'dev' role
+    if 'dev' not in [role.name.lower() for role in ctx.author.roles]:
+        await ctx.send(f"{ctx.author.mention}, you do not have permission to use this command.")
+        return
+    try:
+        shop_manager.refresh_shop()
+        await ctx.send("Shop refreshed.")
+    except Exception as e:
+        await ctx.send(f"{ctx.author.mention}, an error occurred: {str(e)}")
             
 @commands.command()
 async def bye(ctx):
