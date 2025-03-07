@@ -59,7 +59,7 @@ async def stats(ctx):
     )
     if stats:
         for stat, value in stats.items():
-            stats_message += f"    - **{stat.replace('_', ' ').title()}:** {value}\n"
+            stats_message += f"  **{stat.replace('_', ' ').title()}:** {value}\n"
     await ctx.send(stats_message)
     
 @commands.command()
