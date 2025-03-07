@@ -95,6 +95,7 @@ async def equip(ctx, item_id: int):
         update_player_data(ctx.author.id, equipped_items=equipped_items)
     
         await ctx.send(f"You equipped {item_to_equip['name']} (ID: {item_to_equip['id']}, {item_to_equip['type'].title()}).")
+        
 @commands.command()
 async def unequip(ctx, item_type: str):
     """Unequip an item."""
@@ -108,16 +109,13 @@ async def unequip(ctx, item_type: str):
         if item_type not in equipped_items:
             await ctx.send(f"You don't have a {item_type} equipped.")
             return
-
-        # Unequip the item and update player stats
+        
+        # Update player's stats
+        for stat, value in equipped_items.get("stats", {}).items():
+            increment_player_stat(ctx.author.id, stat, -value)
+        # Unequip the item
         unequipped_item = equipped_items.pop(item_type)
-
-        if unequipped_item["type"] == "weapon":
-            player["attack"] -= unequipped_item.get("attack", 0)
-        elif unequipped_item["type"] == "armor":
-            player["armor"] -= unequipped_item.get("armor", 0)
-
-        update_player_data(ctx.author.id, equipped_items=equipped_items, attack=player["attack"], armor=player["armor"])
+        update_player_data(ctx.author.id, equipped_items=equipped_items)
 
         await ctx.send(f"You unequipped {unequipped_item['name']} (ID: {unequipped_item['id']}, {item_type.title()}).")
 
