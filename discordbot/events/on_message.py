@@ -71,7 +71,7 @@ async def start(message):
     await bot.process_commands(message)
     
 # Function to call the DeepSeek API
-def get_deepseek_response(message_content, user):
+async def get_deepseek_response(message_content, user):
     if user["role"] == "Gueux":
         MAX_TOKENS = 100
     else :

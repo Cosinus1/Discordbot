@@ -32,6 +32,9 @@ class ShopManager:
             for rarity in rarities:
                 self.items.append(self.generate_shop_item(rarity))
             # Generate unlimited stack of potions
+            for potion in self.potions:
+                item_manager.remove_item(potion["id"])
+            self.potions = []
             self.potions.append(self.generate_potion())
 
     def generate_shop_item(self, rarity):
