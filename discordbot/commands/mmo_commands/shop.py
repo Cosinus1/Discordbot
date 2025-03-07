@@ -11,9 +11,18 @@ async def shop(ctx):
     """Display the items available in the shop."""
     with lock:
         items = shop_manager.items + shop_manager.potions
-        shop_list = "\n".join([f"{item['id']}. {item['name']} ({item['rarity'].title()}) - {item['price']} gold" for item in items])
-        await ctx.send(f"**Shop Items:**\n{shop_list}")
-
+        shop_list = []
+        for item in items:
+            if item["type"] == "consumable":
+                # Potions don't have rarity
+                shop_list.append(f"{item['id']}. {item['name']} - {item['price']} gold")
+            else:
+                # Equipment items have rarity
+                shop_list.append(f"{item['id']}. {item['name']} ({item['rarity'].title()}) - {item['price']} gold")
+        
+    shop_list_str = '\n'.join(shop_list)
+    await ctx.send(f"**Shop Items:**\n{shop_list_str}")
+    
 @commands.command()
 async def buy(ctx, item_reference: str):
     """Buy an item from the shop by name or ID."""
@@ -52,7 +61,7 @@ async def buy(ctx, item_reference: str):
 
         # Handle potions (unlimited stock)
         if item["type"] == "consumable":
-            await ctx.send(f"You bought a {item['name']} (ID: {item['id']}, {item['rarity'].title()}) for {item['price']} gold!")
+            await ctx.send(f"You bought a {item['name']} (ID: {item['id']}) for {item['price']} gold!")
         else:
             # Replace sold item with a new one of the same rarity
             shop_manager.replace_sold_item(item["id"])
@@ -101,4 +110,8 @@ async def sell(ctx, item_reference: str):
         update_user_data(ctx.author.id, money=user["money"])
         item_manager.remove_item(item_to_sell["id"])
 
-        await ctx.send(f"You sold a {item_to_sell['name']} (ID: {item_to_sell['id']}, {item_to_sell['rarity'].title()}) for {sell_price} gold!")
+        # Handle potions (no rarity)
+        if item_to_sell["type"] == "consumable":
+            await ctx.send(f"You sold a {item_to_sell['name']} (ID: {item_to_sell['id']}) for {sell_price} gold!")
+        else:
+            await ctx.send(f"You sold a {item_to_sell['name']} (ID: {item_to_sell['id']}, {item_to_sell['rarity'].title()}) for {sell_price} gold!")
