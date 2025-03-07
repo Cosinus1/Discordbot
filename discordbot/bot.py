@@ -1,12 +1,10 @@
-from discord.ext import commands
-import asyncio
 from config import bot, TOKEN
 from database import init_db
 from events import on_ready as on_ready_handler, on_message as on_message_handler, on_member_join as on_member_join_handler, on_voice_state_update as on_voice_state_update_handler
 from tasks import check_inactivity, shop_tasks
 from commands import user_commands, admin_commands
 from commands.mmo_commands.combat import attack, pve, hp, health
-from commands.mmo_commands.inventory import inv, stats, equip, unequip, stuff
+from commands.mmo_commands.inventory import inv, stats, equip, unequip, stuff, use
 from commands.mmo_commands.shop import shop, buy, sell
 from commands.mmo_commands.join import join
 
@@ -58,7 +56,7 @@ bot.add_command(inv)
 bot.add_command(stats)
 bot.add_command(equip)
 bot.add_command(unequip)
-bot.add.command(use)
+bot.add_command(use)
 bot.add_command(stuff)
 bot.add_command(shop)
 bot.add_command(buy)
