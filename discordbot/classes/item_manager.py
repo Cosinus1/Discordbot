@@ -1,7 +1,7 @@
 import json
 import random
 import threading
-from utils.mmo_utils.items_utils import RARITY_MODIFIERS, STAT_CONSTRAINTS, STAT_BUDGET, PRICE_MULTIPLIER
+from utils.mmo_utils.item_utils import RARITY_MODIFIERS, STAT_CONSTRAINTS, STAT_BUDGET, PRICE_MULTIPLIER
 
 class ItemManager:
     _instance = None
