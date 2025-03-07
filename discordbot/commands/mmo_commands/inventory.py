@@ -90,9 +90,9 @@ async def equip(ctx, item_id: int):
             increment_player_stat(ctx.author.id, stat, value)
     
         # Equip the item
-        equipped_items = player["equipped_items"]
-        equipped_items[item_to_equip["type"]] = item_to_equip
-        update_player_data(ctx.author.id, equipped_items=equipped_items)
+        new_equipped_items = player["equipped_items"]
+        new_equipped_items[item_to_equip["type"]] = item_to_equip
+        update_player_data(ctx.author.id, equipped_items=new_equipped_items)
     
         await ctx.send(f"You equipped {item_to_equip['name']} (ID: {item_to_equip['id']}, {item_to_equip['type'].title()}).")
         
@@ -105,17 +105,17 @@ async def unequip(ctx, item_type: str):
             await ctx.send("You are not registered as a player.")
             return
 
-        equipped_items = player["equipped_items"]
-        if item_type not in equipped_items:
+        new_equipped_items = player["equipped_items"]
+        if item_type not in new_equipped_items:
             await ctx.send(f"You don't have a {item_type} equipped.")
             return
         
         # Update player's stats
-        for stat, value in equipped_items.get("stats", {}).items():
+        for stat, value in new_equipped_items.get("stats", {}).items():
             increment_player_stat(ctx.author.id, stat, -value)
         # Unequip the item
-        unequipped_item = equipped_items.pop(item_type)
-        update_player_data(ctx.author.id, equipped_items=equipped_items)
+        unequipped_item=new_equipped_items.pop(item_type)
+        update_player_data(ctx.author.id, equipped_items=new_equipped_items)
 
         await ctx.send(f"You unequipped {unequipped_item['name']} (ID: {unequipped_item['id']}, {item_type.title()}).")
 
