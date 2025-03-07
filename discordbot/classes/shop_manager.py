@@ -1,6 +1,6 @@
 import random
 from classes.item_manager import item_manager
-from utils.mmo_utils.items_utils import ITEM_TEMPLATES
+from utils.mmo_utils.item_utils import ITEM_TEMPLATES
 import threading
 
 class ShopManager:
