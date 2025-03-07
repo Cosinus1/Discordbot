@@ -65,7 +65,7 @@ async def start(message):
         response = await get_deepseek_response(message_content, user)
         
         # Send the response back to the channel
-        await message.channel.reply(response)
+        await message.reply(response)
     
     # Allow other commands to work
     await bot.process_commands(message)
