@@ -176,6 +176,11 @@ async def use(ctx, item_reference: str):
             await ctx.send("You are not registered as a player. (type !join)")
             return
 
+        # Ensure player health is initialized
+        if player.get("health") is None:
+            player["health"] = 100  # Default health if not set
+            update_player_data(ctx.author.id, health=player["health"])
+
         inventory = player["inventory"]
         if not inventory:
             await ctx.send("Your inventory is empty.")
@@ -214,6 +219,15 @@ async def use(ctx, item_reference: str):
         # Apply the item's effect
         if "effect" in item_to_use:
             health_restored = item_to_use["effect"]
+            if not isinstance(health_restored, (int, float)) or health_restored <= 0:
+                await ctx.send("This potion has an invalid effect.")
+                return
+
+            # Ensure player health is a valid number
+            if not isinstance(player["health"], (int, float)):
+                player["health"] = 100  # Reset to default if invalid
+
+            # Restore health and cap at 100
             player["health"] = min(100, player["health"] + health_restored)
             update_player_data(ctx.author.id, health=player["health"])
             await ctx.send(f"You used {item_to_use['name']} (ID: {item_to_use['id']}) and restored {health_restored} health.")
