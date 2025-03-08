@@ -180,6 +180,10 @@ async def use(ctx, item_reference: str):
         if player.get("health") is None:
             player["health"] = 100  # Default health if not set
             update_player_data(ctx.author.id, health=player["health"])
+        # Ensure max_hp is initialized
+        if player["stats"]["max_hp"] is None:
+            player["stats"]["max_hp"] = 100
+            update_player_data(ctx.author.id, stats = player["stats"])
 
         inventory = player["inventory"]
         if not inventory:
@@ -219,6 +223,7 @@ async def use(ctx, item_reference: str):
         # Apply the item's effect
         if "effect" in item_to_use:
             health_restored = item_to_use["effect"]
+            print(health_restored, type(health_restored))
             if not isinstance(health_restored, (int, float)) or health_restored <= 0:
                 await ctx.send("This potion has an invalid effect.")
                 return

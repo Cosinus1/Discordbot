@@ -27,7 +27,7 @@ def init_db():
             user_id INTEGER PRIMARY KEY,
             health INTEGER DEFAULT 100,
             attack INTEGER DEFAULT 10,
-            stats TEXT DEFAULT '{}',
+            stats TEXT DEFAULT '{"max_hp": 100}',
             inventory TEXT,
             equipped_items TEXT,
             FOREIGN KEY (user_id) REFERENCES users (user_id)
@@ -282,6 +282,10 @@ def increment_player_stat(user_id, stat_name, amount):
             # Directly update health or attack
             player[stat_name] += amount
             update_player_data(user_id, **{stat_name: player[stat_name]})
+            if stat_name== "health":
+                # Also update max_hp in the stats dictionary
+                player["stats"]["max_hp"] = player["stats"].get("max_hp", 100) + amount
+                update_player_data(user_id, stats=player["stats"])
         else:
             # Update stats in the stats dictionary
             player["stats"][stat_name] = player["stats"].get(stat_name, 0) + amount
