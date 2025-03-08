@@ -233,7 +233,7 @@ async def use(ctx, item_reference: str):
                 player["health"] = 100  # Reset to default if invalid
 
             # Restore health and cap at 100
-            player["health"] = min(100, player["health"] + health_restored)
+            player["health"] = min(player["stats"]["max_hp"], player["health"] + health_restored)
             update_player_data(ctx.author.id, health=player["health"])
             await ctx.send(f"You used {item_to_use['name']} (ID: {item_to_use['id']}) and restored {health_restored} health.")
         else:
