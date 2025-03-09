@@ -1,12 +1,11 @@
 import discord
 from discord import File
 from discord.ext import commands
-from database import get_player_data, get_user_data, update_player_data, update_user_data
+from database import get_player_data, update_player_data
 from classes.combat_ui import CombatView
 from utils.mmo_utils.monster_utils import get_monster
-from utils.mmo_utils.combat_utils import simulate_combat, calculate_damage
-from utils.mmo_utils.embed_utils import create_combat_embed, create_health_bar
-import random
+from utils.mmo_utils.combat_utils import calculate_damage
+from utils.mmo_utils.embed_utils import create_combat_embed
 import asyncio
 
 @commands.command()
@@ -15,7 +14,6 @@ async def pve(ctx, difficulty="easy"):
     monster = get_monster(difficulty)
     embed = create_combat_embed(player, monster)
     view = CombatView(player, monster)
-    # Attach the image file
     file = File("data/mmo/PNG/goblin_vecto.png", filename="goblin_vecto.png")
     await ctx.send(embed=embed, file=file, view=view)
 # @commands.command()
