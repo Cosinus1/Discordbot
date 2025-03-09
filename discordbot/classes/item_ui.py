@@ -4,13 +4,12 @@ from utils.mmo_utils.embed_utils import create_item_embed
 from database import get_player_data, update_player_data, get_user_data, update_user_data, increment_player_stat
 from classes.item_manager import item_manager
 from classes.shop_manager import shop_manager
-from classes.shop_ui import ShopUI
 
 class ItemButton(Button):
     """
     A button for displaying and interacting with an item
     """
-    def __init__(self, item, context="shop"):
+    def __init__(self, item, context="shop", shop_ui=None):
         # Choose an appropriate style based on item rarity if available
         style = discord.ButtonStyle.secondary
         if "rarity" in item:
@@ -24,26 +23,28 @@ class ItemButton(Button):
         super().__init__(style=style, label=item["name"], row=0)
         self.item = item
         self.context = context
+        self.shop_ui = shop_ui
         
     async def callback(self, interaction: discord.Interaction):
         """Handles the button click."""
         embed = create_item_embed(self.item)
-        view = ItemActionsView(self.item, interaction.user.id, self.context)
+        view = ItemActionsView(self.item, interaction.user.id, self.context, self.shop_ui)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 class ItemActionsView(View):
     """
     A view for handling item-specific actions (Buy, Use, Equip, Sell, etc.).
     """
-    def __init__(self, item, user_id, context="inventory"):
+    def __init__(self, item, user_id, context="inventory", shop_ui=None):
         super().__init__()
         self.item = item
         self.context = context
         self.user_id = user_id
+        self.shop_ui = shop_ui
         
         # Add buttons based on the context
         if self.context == "shop":
-            self.add_item(BuyButton(item))
+            self.add_item(BuyButton(item, shop_ui))
         elif self.context == "inventory":
             player = get_player_data(self.user_id)
             if item["type"] == "consumable":
@@ -59,9 +60,10 @@ class ItemActionsView(View):
             self.add_item(TakeButton(item))
 
 class BuyButton(Button):
-    def __init__(self, item):
+    def __init__(self, item, shop_ui=None):
         super().__init__(style=discord.ButtonStyle.green, label=f"Buy ({item['price']} gold)", row=1)
         self.item = item
+        self.shop_ui = shop_ui
 
     async def callback(self, interaction: discord.Interaction):
         player = get_player_data(interaction.user.id)
@@ -102,12 +104,9 @@ class BuyButton(Button):
             # Send purchase confirmation message
             await interaction.response.send_message(f"You bought a {item_name} (ID: {item_id}, {item_rarity.title()}) for {item_price} gold! The shop has been updated with a new item.", ephemeral=True)
             
-            # Find the original shop message
-            async for message in interaction.channel.history(limit=50):
-                if message.author.id == interaction.client.user.id and hasattr(message, "view") and isinstance(message.view, ShopUI):
-                    # Update the shop UI
-                    await message.view.update_item_button(item_id, interaction)
-                    break
+            # Instead of searching through messages, directly update the shop UI
+            if self.shop_ui:
+                await self.shop_ui.update_item_button(item_id, interaction)
                 
 class UseButton(Button):
     def __init__(self, item):

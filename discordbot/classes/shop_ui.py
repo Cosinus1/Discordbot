@@ -24,7 +24,7 @@ class ShopUI(View):
         # Add ItemButton components for each item
         for row_idx, row_items in enumerate(rows):
             for item in row_items:
-                item_button = ItemButton(item, context="shop")
+                item_button = ItemButton(item, context="shop", shop_ui=self)  # Pass shop_ui reference
                 item_button.row = row_idx  # Set the row for this button
                 self.add_item(item_button)
 
@@ -62,7 +62,7 @@ class ShopUI(View):
         
     async def update_item_button(self, sold_item_id, interaction):
         """Update a button in the shop after an item is sold."""
-        # Find the index of the sold item in self.items
+        # Find the index of the sold item in shop_manager.items
         sold_item_index = next((i for i, item in enumerate(shop_manager.items) if item["id"] == sold_item_id), None)
         
         if sold_item_index is not None:
@@ -82,8 +82,8 @@ class ShopUI(View):
                 # Remove the old button
                 self.remove_item(button_to_update)
                 
-                # Create a new button with the new item
-                new_button = ItemButton(new_item, context="shop")
+                # Create a new button with the new item and pass shop_ui reference
+                new_button = ItemButton(new_item, context="shop", shop_ui=self)
                 new_button.row = row_number
                 self.add_item(new_button)
                 
