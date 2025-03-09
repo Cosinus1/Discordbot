@@ -1,6 +1,6 @@
 import discord
 from discord.ui import Button, View
-from utils.mmo_utils.mmo_utils.embed_utils import create_combat_embed, create_health_bar
+from utils.mmo_utils.embed_utils import create_combat_embed, create_health_bar
 from utils.mmo_utils.combat_utils import calculate_damage
 
 class CombatView(View):
