@@ -4,6 +4,7 @@ from utils.mmo_utils.embed_utils import create_item_embed
 from database import get_player_data, update_player_data, get_user_data, update_user_data, increment_player_stat
 from classes.item_manager import item_manager
 from classes.shop_manager import shop_manager
+from classes.shop_ui import ShopUI
 
 class ItemButton(Button):
     """
@@ -67,37 +68,30 @@ class BuyButton(Button):
         if not player:
             await interaction.response.send_message("You are not registered as a player.", ephemeral=True)
             return
-
+    
         user = get_user_data(interaction.user.id)
         if not user:
             await interaction.response.send_message("You are not registered in the database.", ephemeral=True)
             return
-
+    
         # Check if the player has enough gold
         if user["money"] < self.item["price"]:
             await interaction.response.send_message("You don't have enough gold to buy this item.", ephemeral=True)
             return
-
+    
         # Get item ID before it could be modified
         item_id = self.item["id"]
         item_type = self.item["type"]
         item_name = self.item["name"]
         item_rarity = self.item.get("rarity", "common")
         item_price = self.item["price"]
-
+    
         # Deduct money and add item to inventory
         user["money"] -= item_price
         player["inventory"].append(self.item)
         update_player_data(interaction.user.id, inventory=player["inventory"])
         update_user_data(interaction.user.id, money=user["money"])
-
-        # Find the original shop view if it exists
-        original_shop_message = None
-        for message in interaction.channel.history(limit=50):
-            if message.author.id == interaction.client.user.id and hasattr(message, "view") and isinstance(message.view, ShopUI):
-                original_shop_message = message
-                break
-
+    
         # Handle potions (unlimited stock)
         if item_type == "consumable":
             await interaction.response.send_message(f"You bought a {item_name} (ID: {item_id}) for {item_price} gold!", ephemeral=True)
@@ -105,16 +99,16 @@ class BuyButton(Button):
             # Replace sold item with a new one of the same rarity
             shop_manager.replace_sold_item(item_id)
             
-            # Update the shop UI if we can find it
-            if original_shop_message and hasattr(original_shop_message, "view") and isinstance(original_shop_message.view, ShopUI):
-                # Close the item details view
-                await interaction.response.send_message(f"You bought a {item_name} (ID: {item_id}, {item_rarity.title()}) for {item_price} gold!", ephemeral=True)
+            # Send purchase confirmation message
+            await interaction.response.send_message(f"You bought a {item_name} (ID: {item_id}, {item_rarity.title()}) for {item_price} gold! The shop has been updated with a new item.", ephemeral=True)
+            
+            # Find the original shop message
+            async for message in interaction.channel.history(limit=50):
+                if message.author.id == interaction.client.user.id and hasattr(message, "view") and isinstance(message.view, ShopUI):
+                    # Update the shop UI
+                    await message.view.update_item_button(item_id, interaction)
+                    break
                 
-                # Update the shop UI
-                await original_shop_message.view.update_item_button(item_id, interaction)
-            else:
-                # If we couldn't find the shop view, just send a success message
-                await interaction.response.send_message(f"You bought a {item_name} (ID: {item_id}, {item_rarity.title()}) for {item_price} gold!", ephemeral=True)
 class UseButton(Button):
     def __init__(self, item):
         super().__init__(style=discord.ButtonStyle.blurple, label="Use", row=1)
