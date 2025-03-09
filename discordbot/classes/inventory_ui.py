@@ -1,7 +1,7 @@
 import discord
 from discord.ui import Select, View, Button
 from utils.mmo_utils.embed_utils import create_item_embed
-from database import get_player_data, update_player_data, increment_player_stat
+from database import get_player_data, update_player_data, increment_player_stat, get_user_data, update_user_data
 from classes.item_manager import item_manager
 
 class InventorySelect(Select):
@@ -142,7 +142,7 @@ class SellButton(Button):
         # Add the item's price to the player's money
         player_money = get_player_data(interaction.user.id).get("money", 0)
         new_money = player_money + self.item["price"]
-        update_player_data(interaction.user.id, money=new_money)
+        update_user_data(interaction.user.id, money=new_money)
 
         await interaction.response.send_message(f"You sold {self.item['name']} for {self.item['price']} gold.", ephemeral=True)
 
