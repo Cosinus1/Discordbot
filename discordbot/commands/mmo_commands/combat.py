@@ -13,15 +13,11 @@ import asyncio
 async def pve(ctx, difficulty="easy"):
     player = get_player_data(ctx.author.id)
     monster = get_monster(difficulty)
-
-    # Create the embed
-    embed = create_combat_embed(player, monster, image_filename="goblin_vecto.png")
-
+    embed = create_combat_embed(player, monster)
+    view = CombatView(player, monster)
     # Attach the image file
     file = File("data/mmo/PNG/goblin_vecto.png", filename="goblin_vecto.png")
-
-    # Send the embed with the attached image
-    await ctx.send(embed=embed, file=file)
+    await ctx.send(embed=embed, file=file, view=view)
 # @commands.command()
 # async def pve(ctx, difficulty="easy"):
 #     """Fight a randomly generated monster based on difficulty."""
