@@ -1,4 +1,5 @@
 import discord
+from discord import File
 from discord.ext import commands
 from database import get_player_data, get_user_data, update_player_data, update_user_data
 from classes.combat_ui import CombatView
@@ -12,9 +13,15 @@ import asyncio
 async def pve(ctx, difficulty="easy"):
     player = get_player_data(ctx.author.id)
     monster = get_monster(difficulty)
-    embed = create_combat_embed(player, monster)
-    view = CombatView(player, monster)
-    await ctx.send(embed=embed, view=view)
+
+    # Create the embed
+    embed = create_combat_embed(player, monster, image_filename="goblin_vecto.png")
+
+    # Attach the image file
+    file = File("data/mmo/PNG/goblin_vecto.png", filename="goblin_vecto.png")
+
+    # Send the embed with the attached image
+    await ctx.send(embed=embed, file=file)
 # @commands.command()
 # async def pve(ctx, difficulty="easy"):
 #     """Fight a randomly generated monster based on difficulty."""
