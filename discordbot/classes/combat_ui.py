@@ -115,7 +115,7 @@ class CombatView(View):
             item = random.choice(items)
             player["inventory"].append(item)
         update_player_data(self.player["user_id"], inventory=player["inventory"])
-        update_user_data(self.player["user_id"], money=player["money"])
+        update_user_data(self.player["user_id"], money=user["money"])
 
         # Create an embed to display the loot
         loot_embed = discord.Embed(title="Loot", color=discord.Color.gold())
