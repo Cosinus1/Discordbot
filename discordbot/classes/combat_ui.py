@@ -1,8 +1,9 @@
 import discord
 from discord.ui import Button, View
-from utils.mmo_utils.embed_utils import create_combat_embed, create_health_bar
+from utils.mmo_utils.embed_utils import create_combat_embed
 from utils.mmo_utils.combat_utils import calculate_damage
-from database import get_player_data, update_player_data
+from database import get_player_data, update_player_data, get_user_data, update_user_data
+import random
 
 class CombatView(View):
     """
@@ -108,9 +109,13 @@ class CombatView(View):
 
         # Update the player's gold and inventory
         player = get_player_data(self.player["user_id"])
-        player["money"] += gold
-        player["inventory"].extend(items)
-        update_player_data(self.player["user_id"], money=player["money"], inventory=player["inventory"])
+        user = get_user_data(self.player["user_id"])
+        user["money"] += gold
+        if items:
+            item = random.choice(items)
+            player["inventory"].append(item)
+        update_player_data(self.player["user_id"], inventory=player["inventory"])
+        update_user_data(self.player["user_id"], money=player["money"])
 
         # Create an embed to display the loot
         loot_embed = discord.Embed(title="Loot", color=discord.Color.gold())
