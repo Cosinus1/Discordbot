@@ -78,20 +78,43 @@ class BuyButton(Button):
             await interaction.response.send_message("You don't have enough gold to buy this item.", ephemeral=True)
             return
 
+        # Get item ID before it could be modified
+        item_id = self.item["id"]
+        item_type = self.item["type"]
+        item_name = self.item["name"]
+        item_rarity = self.item.get("rarity", "common")
+        item_price = self.item["price"]
+
         # Deduct money and add item to inventory
-        user["money"] -= self.item["price"]
+        user["money"] -= item_price
         player["inventory"].append(self.item)
         update_player_data(interaction.user.id, inventory=player["inventory"])
         update_user_data(interaction.user.id, money=user["money"])
 
+        # Find the original shop view if it exists
+        original_shop_message = None
+        for message in interaction.channel.history(limit=50):
+            if message.author.id == interaction.client.user.id and hasattr(message, "view") and isinstance(message.view, ShopUI):
+                original_shop_message = message
+                break
+
         # Handle potions (unlimited stock)
-        if self.item["type"] == "consumable":
-            await interaction.response.send_message(f"You bought a {self.item['name']} (ID: {self.item['id']}) for {self.item['price']} gold!", ephemeral=True)
+        if item_type == "consumable":
+            await interaction.response.send_message(f"You bought a {item_name} (ID: {item_id}) for {item_price} gold!", ephemeral=True)
         else:
             # Replace sold item with a new one of the same rarity
-            shop_manager.replace_sold_item(self.item["id"])
-            await interaction.response.send_message(f"You bought a {self.item['name']} (ID: {self.item['id']}, {self.item['rarity'].title()}) for {self.item['price']} gold!", ephemeral=True)
-
+            shop_manager.replace_sold_item(item_id)
+            
+            # Update the shop UI if we can find it
+            if original_shop_message and hasattr(original_shop_message, "view") and isinstance(original_shop_message.view, ShopUI):
+                # Close the item details view
+                await interaction.response.send_message(f"You bought a {item_name} (ID: {item_id}, {item_rarity.title()}) for {item_price} gold!", ephemeral=True)
+                
+                # Update the shop UI
+                await original_shop_message.view.update_item_button(item_id, interaction)
+            else:
+                # If we couldn't find the shop view, just send a success message
+                await interaction.response.send_message(f"You bought a {item_name} (ID: {item_id}, {item_rarity.title()}) for {item_price} gold!", ephemeral=True)
 class UseButton(Button):
     def __init__(self, item):
         super().__init__(style=discord.ButtonStyle.blurple, label="Use", row=1)
