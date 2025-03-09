@@ -72,3 +72,72 @@ def create_item_embed(item, image_filename="item.png"):
 
     return embed
 
+def create_stats_embed(player, display_name):
+    """Create an embed for displaying player stats."""
+    health = player.get("health", 0)
+    attack = player.get("attack", 0)
+    stats = player.get("stats", {})
+
+    embed = discord.Embed(
+        title=f"{display_name}'s Stats",
+        color=discord.Color.blue()
+    )
+
+    # Add health and attack fields
+    embed.add_field(name="❤️ Health", value=f"{health}", inline=True)
+    embed.add_field(name="⚔️ Attack", value=f"{attack}", inline=True)
+
+    # Add additional stats if they exist
+    if stats:
+        for stat, value in stats.items():
+            embed.add_field(
+                name=f"✨ {stat.replace('_', ' ').title()}",
+                value=f"{value}",
+                inline=True
+            )
+
+    return embed
+
+def create_equipped_items_embed(player, display_name):
+    """Create an embed for displaying equipped items."""
+    equipped_items = player["equipped_items"]
+    if not equipped_items:
+        return None
+
+    embed = discord.Embed(
+        title=f"{display_name}'s Equipped Items",
+        color=discord.Color.green()
+    )
+
+    # Add each equipped item to the embed
+    for item in equipped_items.values():
+        embed.add_field(
+            name=f"🔹 {item['name']}",
+            value=(
+                f"**Type:** {item['type'].title()}\n"
+                f"**Rarity:** {item['rarity'].title()}\n"
+                f"**ID:** {item['id']}"
+            ),
+            inline=False
+        )
+
+    return embed
+
+def create_hp_embed(player, display_name):
+    """Create an embed for displaying the player's current health."""
+    health = player.get("health", 0)
+    max_health = player.get("stats", {}).get("max_hp", 100)
+
+    embed = discord.Embed(
+        title=f"{display_name}'s Health",
+        color=discord.Color.red()
+    )
+
+    # Add health bar and current/max health
+    embed.add_field(
+        name="❤️ Health",
+        value=create_health_bar(health, max_health),
+        inline=False
+    )
+
+    return embed
