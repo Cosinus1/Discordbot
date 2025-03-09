@@ -46,10 +46,29 @@ def create_item_embed(item, image_filename="item.png"):
     """
     Creates an embed for item details.
     """
-    embed = discord.Embed(title=item["name"], description=f"Type: {item['type'].title()}\nRarity: {item['rarity'].title()}", color=discord.Color.blue())
+    # Set the embed title and color
+    embed = discord.Embed(title=item["name"], color=discord.Color.blue())
+
+    # Add the item type to the description
+    embed.description = f"Type: {item['type'].title()}"
+
+    # Add rarity only if the item is not a consumable
+    if item["type"] != "consumable":
+        embed.description += f"\nRarity: {item['rarity'].title()}"
+
+    # Add the price field
     embed.add_field(name="Price", value=f"{item['price']} gold", inline=False)
-    if "stats" in item:
+
+    # Add stats if the item has stats (for equipment)
+    if "stats" in item and item["type"] != "consumable":
         embed.add_field(name="Stats", value="\n".join([f"{k}: {v}" for k, v in item["stats"].items()]), inline=False)
-    embed.set_thumbnail(url=f"attachment://{image_filename}")  # Reference the attached file
+
+    # Add effect if the item is a consumable
+    if item["type"] == "consumable" and "effect" in item:
+        embed.add_field(name="Effect", value=f"Restores {item['effect']} health", inline=False)
+
+    # Set the thumbnail image
+    embed.set_thumbnail(url=f"attachment://{image_filename}")
+
     return embed
 
