@@ -1,6 +1,5 @@
 from discord.ext import commands
-from classes.shop_manager import shop_manager
-from classes.item_ui import ItemUI
+from classes.shop_ui import ShopUI
 import threading
 
 lock = threading.Lock()
@@ -9,8 +8,5 @@ lock = threading.Lock()
 async def shop(ctx):
     """Display the items available in the shop."""
     with lock:
-        items = shop_manager.items + shop_manager.potions
-        for item in items:
-            embed = ItemUI(item, context="shop").create_item_embed()
-            view = ItemUI(item, context="shop")
-            await ctx.send(embed=embed, view=view)
+        shop_ui = ShopUI()
+        await shop_ui.send_shop(ctx)

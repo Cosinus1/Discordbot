@@ -6,23 +6,44 @@ from classes.item_manager import item_manager
 from classes.shop_manager import shop_manager
 
 class ItemUI(View):
-    """
-    A view for displaying item details and handling interactions.
-    """
-
     def __init__(self, item, context="shop"):
         super().__init__()
         self.item = item
         self.context = context  # Can be "shop", "inventory", or "loot"
+        
+        # Add a button for this item
+        self.add_item(ItemButton(item))
+        
+    def create_item_embed(self):
+        return create_item_embed(self.item)
 
+class ItemButton(Button):
+    def __init__(self, item):
+        super().__init__(style=discord.ButtonStyle.secondary, label=item["name"], row=0)
+        self.item = item
+        
+    async def callback(self, interaction: discord.Interaction):
+        """Handles the button click."""
+        embed = create_item_embed(self.item)
+        view = ItemActionsView(self.item, interaction.user.id)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+class ItemActionsView(View):
+    def __init__(self, item, user_id, context="inventory"):
+        super().__init__()
+        self.item = item
+        self.context = context
+        self.user_id = user_id
+        
         # Add buttons based on the context
         if self.context == "shop":
             self.add_item(BuyButton(item))
         elif self.context == "inventory":
+            player = get_player_data(self.user_id)
             if item["type"] == "consumable":
                 self.add_item(UseButton(item))
             else:
-                if item["type"] in get_player_data(self.user_id)["equipped_items"]:
+                if item["type"] in player["equipped_items"] and player["equipped_items"][item["type"]]["id"] == item["id"]:
                     self.add_item(UnEquipButton(item))
                 else:
                     self.add_item(EquipButton(item))
@@ -30,13 +51,9 @@ class ItemUI(View):
         elif self.context == "loot":
             self.add_item(TakeButton(item))
 
-    def create_item_embed(self):
-        """Create an embed for the item."""
-        return create_item_embed(self.item)
-
 class BuyButton(Button):
     def __init__(self, item):
-        super().__init__(style=discord.ButtonStyle.green, label=f"Buy ({item['price']} gold)")
+        super().__init__(style=discord.ButtonStyle.green, label=f"Buy ({item['price']} gold)", row=1)
         self.item = item
 
     async def callback(self, interaction: discord.Interaction):
@@ -71,7 +88,7 @@ class BuyButton(Button):
 
 class UseButton(Button):
     def __init__(self, item):
-        super().__init__(style=discord.ButtonStyle.blurple, label="Use")
+        super().__init__(style=discord.ButtonStyle.blurple, label="Use", row=1)
         self.item = item
 
     async def callback(self, interaction: discord.Interaction):
@@ -95,7 +112,7 @@ class UseButton(Button):
 
 class EquipButton(Button):
     def __init__(self, item):
-        super().__init__(style=discord.ButtonStyle.green, label="Equip")
+        super().__init__(style=discord.ButtonStyle.green, label="Equip", row=1)
         self.item = item
 
     async def callback(self, interaction: discord.Interaction):
@@ -119,7 +136,7 @@ class EquipButton(Button):
 
 class UnEquipButton(Button):
     def __init__(self, item):
-        super().__init__(style=discord.ButtonStyle.red, label="Unequip")
+        super().__init__(style=discord.ButtonStyle.red, label="Unequip", row=1)
         self.item = item
 
     async def callback(self, interaction: discord.Interaction):
@@ -136,7 +153,7 @@ class UnEquipButton(Button):
 
 class SellButton(Button):
     def __init__(self, item):
-        super().__init__(style=discord.ButtonStyle.gray, label="Sell")
+        super().__init__(style=discord.ButtonStyle.gray, label="Sell", row=1)
         self.item = item
 
     async def callback(self, interaction: discord.Interaction):
@@ -171,7 +188,7 @@ class SellButton(Button):
 
 class TakeButton(Button):
     def __init__(self, item):
-        super().__init__(style=discord.ButtonStyle.green, label="Take")
+        super().__init__(style=discord.ButtonStyle.green, label="Take", row=1)
         self.item = item
 
     async def callback(self, interaction: discord.Interaction):
