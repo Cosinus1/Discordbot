@@ -17,8 +17,8 @@ async def on_ready():
     await on_ready_handler.start(bot)  # Pass bot as an argument
     
     # Start background tasks after the bot is ready
-    check_inactivity.start()
-    shop_tasks.refresh_shop_task.start()
+    await check_inactivity.start()
+    await shop_tasks.refresh_shop_task.start()
 
 
 @bot.event
