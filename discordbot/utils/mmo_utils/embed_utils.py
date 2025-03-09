@@ -41,3 +41,15 @@ def create_health_bar(current, max):
     filled = "🟩" * int((current / max) * 10)
     empty = "🟥" * (10 - len(filled))
     return f"{filled}{empty} {current}/{max}"
+
+def create_item_embed(item, image_filename="item.png"):
+    """
+    Creates an embed for item details.
+    """
+    embed = discord.Embed(title=item["name"], description=f"Type: {item['type'].title()}\nRarity: {item['rarity'].title()}", color=discord.Color.blue())
+    embed.add_field(name="Price", value=f"{item['price']} gold", inline=False)
+    if "stats" in item:
+        embed.add_field(name="Stats", value="\n".join([f"{k}: {v}" for k, v in item["stats"].items()]), inline=False)
+    embed.set_thumbnail(url=f"attachment://{image_filename}")  # Reference the attached file
+    return embed
+
