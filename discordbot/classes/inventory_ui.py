@@ -1,6 +1,6 @@
 import discord
 from discord.ui import Select, View
-from utils.embed_utils import create_item_embed
+from utils.mmo_utils.embed_utils import create_item_embed
 
 class InventorySelect(Select):
     """
