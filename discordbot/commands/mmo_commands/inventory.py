@@ -1,71 +1,80 @@
 from discord.ext import commands
 from database import get_player_data, update_player_data,increment_player_stat
 from classes.item_manager import item_manager
+from classes.inventory_ui import InventoryView
 import threading
 
 lock = threading.Lock()
 
 @commands.command()
 async def inv(ctx):
-    """Display the user's inventory."""
-    with lock:
-        player = get_player_data(ctx.author.id)
-        if not player:
-            await ctx.send("You are not registered as a player. (type !join to play)")
-            return
+    player = get_player_data(ctx.author.id)
+    if not player:
+        await ctx.send("You are not registered as a player.")
+        return
+    view = InventoryView(player)
+    await ctx.send("Select an item to view:", view=view)
+# @commands.command()
+# async def inv(ctx):
+#     """Display the user's inventory."""
+#     with lock:
+#         player = get_player_data(ctx.author.id)
+#         if not player:
+#             await ctx.send("You are not registered as a player. (type !join to play)")
+#             return
 
-        inventory = player["inventory"]
-        if not inventory:
-            await ctx.send("Your inventory is empty.")
-            return
+#         inventory = player["inventory"]
+#         if not inventory:
+#             await ctx.send("Your inventory is empty.")
+#             return
 
-        # Group potions by name and count them
-        potion_counts = {}
-        equipment_items = []
+#         # Group potions by name and count them
+#         potion_counts = {}
+#         equipment_items = []
 
-        for item in inventory:
-            if item["type"] == "consumable":
-                potion_name = item["name"]
-                if potion_name in potion_counts:
-                    potion_counts[potion_name] += 1
-                else:
-                    potion_counts[potion_name] = 1
-            else:
-                equipment_items.append(item)
+#         for item in inventory:
+#             if item["type"] == "consumable":
+#                 potion_name = item["name"]
+#                 if potion_name in potion_counts:
+#                     potion_counts[potion_name] += 1
+#                 else:
+#                     potion_counts[potion_name] = 1
+#             else:
+#                 equipment_items.append(item)
 
-        # Format potions for display
-        potion_list = []
-        for potion_name, count in potion_counts.items():
-            potion_list.append(f"  - **{potion_name}:** {count}")
+#         # Format potions for display
+#         potion_list = []
+#         for potion_name, count in potion_counts.items():
+#             potion_list.append(f"  - **{potion_name}:** {count}")
 
-        # Format equipment for display
-        equipment_list = []
-        for idx, item in enumerate(equipment_items):
-            item_info = (
-                f"**{idx + 1}. {item['name']}**\n"
-                f"  - **ID:** {item['id']}\n"
-                f"  - **Type:** {item['type'].title()}\n"
-                f"  - **Rarity:** {item['rarity'].title()}\n"
-                f"  - **Price:** {item['price']} gold\n"
-            )
-            # Add stats if they exist
-            if "stats" in item:
-                item_info += "  - **Stats:**\n"
-                for stat, value in item["stats"].items():
-                    item_info += f"    - **{stat.replace('_', ' ').title()}:** {value}\n"
-            equipment_list.append(item_info)
+#         # Format equipment for display
+#         equipment_list = []
+#         for idx, item in enumerate(equipment_items):
+#             item_info = (
+#                 f"**{idx + 1}. {item['name']}**\n"
+#                 f"  - **ID:** {item['id']}\n"
+#                 f"  - **Type:** {item['type'].title()}\n"
+#                 f"  - **Rarity:** {item['rarity'].title()}\n"
+#                 f"  - **Price:** {item['price']} gold\n"
+#             )
+#             # Add stats if they exist
+#             if "stats" in item:
+#                 item_info += "  - **Stats:**\n"
+#                 for stat, value in item["stats"].items():
+#                     item_info += f"    - **{stat.replace('_', ' ').title()}:** {value}\n"
+#             equipment_list.append(item_info)
 
-        # Combine potions and equipment into a single message
-        inventory_message = "**Your Inventory:**\n\n"
+#         # Combine potions and equipment into a single message
+#         inventory_message = "**Your Inventory:**\n\n"
 
-        if potion_list:
-            inventory_message += "**Potions:**\n" + "\n".join(potion_list) + "\n\n"
+#         if potion_list:
+#             inventory_message += "**Potions:**\n" + "\n".join(potion_list) + "\n\n"
 
-        if equipment_list:
-            inventory_message += "**Equipment:**\n" + "\n".join(equipment_list)
+#         if equipment_list:
+#             inventory_message += "**Equipment:**\n" + "\n".join(equipment_list)
 
-        # Send the formatted inventory
-        await ctx.send(inventory_message)
+#         # Send the formatted inventory
+#         await ctx.send(inventory_message)
 
 @commands.command()
 async def stats(ctx):
