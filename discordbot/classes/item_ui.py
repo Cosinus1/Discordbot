@@ -5,30 +5,35 @@ from database import get_player_data, update_player_data, get_user_data, update_
 from classes.item_manager import item_manager
 from classes.shop_manager import shop_manager
 
-class ItemUI(View):
-    def __init__(self, item, context="shop"):
-        super().__init__()
-        self.item = item
-        self.context = context  # Can be "shop", "inventory", or "loot"
-        
-        # Add a button for this item
-        self.add_item(ItemButton(item))
-        
-    def create_item_embed(self):
-        return create_item_embed(self.item)
-
 class ItemButton(Button):
-    def __init__(self, item):
-        super().__init__(style=discord.ButtonStyle.secondary, label=item["name"], row=0)
+    """
+    A button for displaying and interacting with an item
+    """
+    def __init__(self, item, context="shop"):
+        # Choose an appropriate style based on item rarity if available
+        style = discord.ButtonStyle.secondary
+        if "rarity" in item:
+            if item["rarity"] == "rare":
+                style = discord.ButtonStyle.primary
+            elif item["rarity"] == "epic":
+                style = discord.ButtonStyle.success
+            elif item["rarity"] == "legendary":
+                style = discord.ButtonStyle.danger
+        
+        super().__init__(style=style, label=item["name"], row=0)
         self.item = item
+        self.context = context
         
     async def callback(self, interaction: discord.Interaction):
         """Handles the button click."""
         embed = create_item_embed(self.item)
-        view = ItemActionsView(self.item, interaction.user.id)
+        view = ItemActionsView(self.item, interaction.user.id, self.context)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 class ItemActionsView(View):
+    """
+    A view for handling item-specific actions (Buy, Use, Equip, Sell, etc.).
+    """
     def __init__(self, item, user_id, context="inventory"):
         super().__init__()
         self.item = item
@@ -43,7 +48,8 @@ class ItemActionsView(View):
             if item["type"] == "consumable":
                 self.add_item(UseButton(item))
             else:
-                if item["type"] in player["equipped_items"] and player["equipped_items"][item["type"]]["id"] == item["id"]:
+                if (item["type"] in player["equipped_items"] and 
+                    player["equipped_items"][item["type"]]["id"] == item["id"]):
                     self.add_item(UnEquipButton(item))
                 else:
                     self.add_item(EquipButton(item))
