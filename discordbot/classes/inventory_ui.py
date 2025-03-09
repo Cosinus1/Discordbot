@@ -82,7 +82,12 @@ class EquipButton(Button):
         equipped_items[self.item["type"]] = self.item
         update_player_data(interaction.user.id, equipped_items=equipped_items)
 
-        await interaction.response.send_message(f"You equipped {self.item['name']}.", ephemeral=True)
+        # Update the view to show the Unequip button
+        embed = create_item_embed(self.item)
+        view = InventoryItemView(player, self.item)
+        await interaction.response.edit_message(embed=embed, view=view)
+
+        await interaction.followup.send(f"You equipped {self.item['name']}.", ephemeral=True)
 
 class UnEquipButton(Button):
     def __init__(self, item):
@@ -99,7 +104,12 @@ class UnEquipButton(Button):
         del equipped_items[self.item["type"]]
         update_player_data(interaction.user.id, equipped_items=equipped_items)
 
-        await interaction.response.send_message(f"You unequipped {self.item['name']}.", ephemeral=True)
+        # Update the view to show the Equip button
+        embed = create_item_embed(self.item)
+        view = InventoryItemView(player, self.item)
+        await interaction.response.edit_message(embed=embed, view=view)
+
+        await interaction.followup.send(f"You unequipped {self.item['name']}.", ephemeral=True)
 
 class UseButton(Button):
     def __init__(self, item):
@@ -133,6 +143,15 @@ class SellButton(Button):
     async def callback(self, interaction: discord.Interaction):
         player = get_player_data(interaction.user.id)
         inventory = player["inventory"]
+        equipped_items = player["equipped_items"]
+
+        # Check if the item is equipped
+        if self.item["id"] in equipped_items:
+            # Unequip the item first
+            for stat, value in self.item.get("stats", {}).items():
+                increment_player_stat(interaction.user.id, stat, -value)
+            del equipped_items[self.item["id"]]
+            update_player_data(interaction.user.id, equipped_items=equipped_items)
 
         # Remove the item from the inventory
         inventory.remove(self.item)
@@ -140,7 +159,7 @@ class SellButton(Button):
         update_player_data(interaction.user.id, inventory=inventory)
 
         # Add the item's price to the player's money
-        player_money = get_player_data(interaction.user.id).get("money", 0)
+        player_money = get_user_data(interaction.user.id).get("money", 0)
         new_money = player_money + self.item["price"]
         update_user_data(interaction.user.id, money=new_money)
 
