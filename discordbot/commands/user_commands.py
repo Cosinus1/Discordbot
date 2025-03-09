@@ -61,7 +61,7 @@ async def bet(ctx, amount: int, choice: str):
 
     # Determine if the user won or lost
     if choice == coin_flip:
-        winnings = amount * 2
+        winnings = amount
         user['money'] += winnings
         result_message += f" Congratulations, {ctx.author.mention}! You won **{winnings}** $!"
     else:
@@ -85,9 +85,8 @@ async def daily(ctx):
     last_claim = user.get("last_daily_claim")
 
     # Check if the user has already claimed their daily reward today
-    if last_claim and last_claim.date() == now.date():
-        next_claim_time = (last_claim + timedelta(days=1)).strftime("%Y-%m-%d %H:%M:%S")
-        await ctx.send(f"{ctx.author.mention}, you have already claimed your daily reward today. You can claim again on **{next_claim_time}**.")
+    if last_claim and last_claim.date().day == now.date().day:
+        await ctx.send(f"{ctx.author.mention}, you have already claimed your daily reward today. You can claim again tomorrow!")
         return
 
     # Ensure user['money'] is not None

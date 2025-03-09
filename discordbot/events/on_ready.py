@@ -30,9 +30,20 @@ async def fetch_and_store_data(guild):
             print(f"{member.name} ajouté avec le rôle '{user_role}'.")
 
     if new_users:
-        update_user_data(new_users)  # Insérer en batch
+        for user in new_users:
+            # Unpack the user dictionary into keyword arguments
+            update_user_data(
+                user_id=user["user_id"],
+                exp=user["exp"],
+                level=user["level"],
+                last_activity=user["last_activity"],
+                role=user["role"],
+                last_exp_gain_date=user["last_exp_gain_date"],
+                daily_exp=user["daily_exp"],
+                money=user["money"],
+                last_daily_claim=user["last_daily_claim"]
+            )
     else:
         print("Aucun nouveau membre à ajouter.")
 
     await asyncio.sleep(1)  # Évite d'être rate-limited si le bot est sur plusieurs serveurs
-
