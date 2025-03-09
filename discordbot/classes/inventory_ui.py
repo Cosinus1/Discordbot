@@ -48,6 +48,7 @@ class InventoryItemView(View):
         self.player = player
         self.item = item
 
+        # Add buttons based on item type
         if item["type"] == "consumable":
             self.add_item(UseButton(item))
         else:
@@ -55,6 +56,9 @@ class InventoryItemView(View):
                 self.add_item(UnEquipButton(item))
             else:
                 self.add_item(EquipButton(item))
+
+        # Add the Sell button for all items
+        self.add_item(SellButton(item))
 
 class EquipButton(Button):
     def __init__(self, item):
@@ -120,6 +124,27 @@ class UseButton(Button):
             await interaction.response.send_message(f"You used {self.item['name']} and restored {health_restored} health.", ephemeral=True)
         else:
             await interaction.response.send_message("This item has no effect.", ephemeral=True)
+
+class SellButton(Button):
+    def __init__(self, item):
+        super().__init__(style=discord.ButtonStyle.gray, label="Sell")
+        self.item = item
+
+    async def callback(self, interaction: discord.Interaction):
+        player = get_player_data(interaction.user.id)
+        inventory = player["inventory"]
+
+        # Remove the item from the inventory
+        inventory.remove(self.item)
+        item_manager.remove_item(self.item["id"])
+        update_player_data(interaction.user.id, inventory=inventory)
+
+        # Add the item's price to the player's money
+        player_money = get_player_data(interaction.user.id).get("money", 0)
+        new_money = player_money + self.item["price"]
+        update_player_data(interaction.user.id, money=new_money)
+
+        await interaction.response.send_message(f"You sold {self.item['name']} for {self.item['price']} gold.", ephemeral=True)
 
 class InventoryView(View):
     """
