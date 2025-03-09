@@ -1,4 +1,5 @@
 from discord.ext import commands
+from classes.shop_manager import shop_manager
 from classes.shop_ui import ShopView
 import threading
 
@@ -9,4 +10,4 @@ async def shop(ctx):
     """Display the items available in the shop."""
     with lock:
         view = ShopView()
-        await ctx.send("Select an item to buy:", view=view)
+        await ctx.send("**Shop Items:**", view=view)

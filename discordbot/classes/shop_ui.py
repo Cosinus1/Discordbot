@@ -1,75 +1,23 @@
 import discord
-from discord.ui import Select, View, Button
+from discord.ui import View, Button
 from utils.mmo_utils.embed_utils import create_item_embed
 from database import get_player_data, update_player_data, get_user_data, update_user_data
 from classes.item_manager import item_manager
 from classes.shop_manager import shop_manager
 
-class ShopSelect(Select):
-    """
-    A select menu for choosing an item from the shop.
-    """
-
-    def __init__(self, items):
-        options = []
-        for item in items:
-            if item["type"] == "consumable":
-                # Potions don't have rarity
-                options.append(
-                    discord.SelectOption(
-                        label=f"{item['name']} - {item['price']} gold",
-                        description=f"Type: {item['type'].title()}",
-                        value=str(item["id"]),  # Use item ID as the value
-                    )
-                )
-            else:
-                # Equipment items have rarity
-                options.append(
-                    discord.SelectOption(
-                        label=f"{item['name']} ({item['rarity'].title()}) - {item['price']} gold",
-                        description=f"Type: {item['type'].title()}",
-                        value=str(item["id"]),  # Use item ID as the value
-                    )
-                )
-        super().__init__(placeholder="Choose an item to buy...", options=options)
-
-    async def callback(self, interaction: discord.Interaction):
-        """
-        Handles the select menu interaction.
-        """
-        player = get_player_data(interaction.user.id)
-        if not player:
-            await interaction.response.send_message("You are not registered as a player.", ephemeral=True)
-            return
-
-        # Find the selected item in the shop
-        item_id = int(self.values[0])
-        item = next((item for item in shop_manager.items + shop_manager.potions if item["id"] == item_id), None)
-
-        if item:
-            # Create an embed for the selected item
-            embed = create_item_embed(item)
-            view = ShopItemView(player, item)
-            await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
-        else:
-            await interaction.response.send_message("Item not found.", ephemeral=True)
-
 class ShopItemView(View):
     """
-    A view for handling shop item interactions.
+    A view for displaying a single shop item with a Buy button.
     """
 
-    def __init__(self, player, item):
+    def __init__(self, item):
         super().__init__()
-        self.player = player
         self.item = item
-
-        # Add a Buy button for the item
         self.add_item(BuyButton(item))
 
 class BuyButton(Button):
     def __init__(self, item):
-        super().__init__(style=discord.ButtonStyle.green, label="Buy")
+        super().__init__(style=discord.ButtonStyle.green, label=f"Buy ({item['price']} gold)")
         self.item = item
 
     async def callback(self, interaction: discord.Interaction):
@@ -108,10 +56,13 @@ class BuyButton(Button):
 
 class ShopView(View):
     """
-    A view for handling shop interactions.
+    A view for displaying all items in the shop with Buy buttons.
     """
 
     def __init__(self):
         super().__init__()
         items = shop_manager.items + shop_manager.potions
-        self.add_item(ShopSelect(items))
+
+        # Add a Buy button for each item
+        for item in items:
+            self.add_item(BuyButton(item))
