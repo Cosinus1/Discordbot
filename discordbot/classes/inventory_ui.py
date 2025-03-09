@@ -99,7 +99,7 @@ class UnEquipButton(Button):
 
 class UseButton(Button):
     def __init__(self, item):
-        super().__init__(style=discord.ButtonStyle.blue, label="Use")
+        super().__init__(style=discord.ButtonStyle.blurple, label="Use")
         self.item = item
 
     async def callback(self, interaction: discord.Interaction):
