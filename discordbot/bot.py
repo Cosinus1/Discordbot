@@ -54,13 +54,9 @@ bot.add_command(hp)
 bot.add_command(health)
 bot.add_command(inv)
 bot.add_command(stats)
-bot.add_command(equip)
-bot.add_command(unequip)
 bot.add_command(use)
 bot.add_command(stuff)
 bot.add_command(shop)
-bot.add_command(buy)
-bot.add_command(sell)
 
 # Run the bot
 bot.run(TOKEN)
