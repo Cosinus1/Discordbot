@@ -27,7 +27,7 @@ class InventorySelect(Select):
         player = get_player_data(interaction.user.id)
         # Find the selected item in the player's inventory
         item_id = int(self.values[0])
-        item = next((item for item in interaction.user["inventory"] if item["id"] == item_id), None)
+        item = next((item for item in player["inventory"] if item["id"] == item_id), None)
 
         if item:
             # Create an embed for the selected item
