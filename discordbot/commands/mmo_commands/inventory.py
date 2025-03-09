@@ -1,7 +1,7 @@
 from discord.ext import commands
 from database import get_player_data
 from classes.inventory_ui import InventoryView
-from utils.mmo_utils.embed_utils import create_stats_embed, create_equipped_items_embed, create_hp_embed
+from utils.mmo_utils.embed_utils import create_stats_embed, create_equipped_items_embed
 import threading
 
 lock = threading.Lock()
@@ -41,14 +41,3 @@ async def stuff(ctx):
             await ctx.send(embed=embed)
         else:
             await ctx.send("You have no items equipped.")
-
-@commands.command()
-async def hp(ctx):
-    """Display the player's current health using a health bar."""
-    player = get_player_data(ctx.author.id)
-    if not player:
-        await ctx.send("You are not registered as a player. (type `!join` to play)")
-        return
-
-    embed = create_hp_embed(player, ctx.author.display_name)
-    await ctx.send(embed=embed)

@@ -5,7 +5,8 @@ from database import get_player_data, update_player_data
 from classes.combat_ui import CombatView
 from utils.mmo_utils.monster_utils import get_monster
 from utils.mmo_utils.combat_utils import calculate_damage
-from utils.mmo_utils.embed_utils import create_combat_embed
+from utils.mmo_utils.embed_utils import create_combat_embed, create_hp_embed
+
 import asyncio
 
 @commands.command()
@@ -51,18 +52,22 @@ async def attack(ctx, target: discord.Member):
 
 @commands.command()
 async def hp(ctx):
+    """Display the player's current health using a health bar."""
     player = get_player_data(ctx.author.id)
-    if player:
-        current_hp = player["health"]
-        await ctx.send(f"{ctx.author.mention}, tu as actuellement {current_hp} HP.")
-    else:
-        await ctx.send(f"{ctx.author.mention}, aucune donnée trouvée pour toi.")
+    if not player:
+        await ctx.send("You are not registered as a player. (type `!join` to play)")
+        return
+
+    embed = create_hp_embed(player, ctx.author.display_name)
+    await ctx.send(embed=embed)
 
 @commands.command()
 async def health(ctx):
+    """Display the player's current health using a health bar."""
     player = get_player_data(ctx.author.id)
-    if player:
-        current_hp = player["health"]
-        await ctx.send(f"{ctx.author.mention}, tu as actuellement {current_hp} HP.")
-    else:
-        await ctx.send(f"{ctx.author.mention}, aucune donnée trouvée pour toi.")
+    if not player:
+        await ctx.send("You are not registered as a player. (type `!join` to play)")
+        return
+
+    embed = create_hp_embed(player, ctx.author.display_name)
+    await ctx.send(embed=embed)

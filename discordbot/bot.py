@@ -4,7 +4,7 @@ from events import on_ready as on_ready_handler, on_message as on_message_handle
 from tasks import check_inactivity, shop_tasks
 from commands import user_commands, admin_commands
 from commands.mmo_commands.combat import attack, pve, hp, health
-from commands.mmo_commands.inventory import inv, stats, stuff, use
+from commands.mmo_commands.inventory import inv, stats, stuff
 from commands.mmo_commands.shop import shop
 from commands.mmo_commands.join import join
 
@@ -54,7 +54,6 @@ bot.add_command(hp)
 bot.add_command(health)
 bot.add_command(inv)
 bot.add_command(stats)
-bot.add_command(use)
 bot.add_command(stuff)
 bot.add_command(shop)
 
