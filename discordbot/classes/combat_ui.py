@@ -3,6 +3,7 @@ from discord.ui import Button, View
 from utils.mmo_utils.embed_utils import create_combat_embed
 from utils.mmo_utils.combat_utils import calculate_damage
 from database import get_player_data, update_player_data, get_user_data, update_user_data
+from classes.item_ui import ItemUI
 import random
 
 class CombatView(View):
@@ -57,48 +58,6 @@ class CombatView(View):
         # Update the message with the new embed
         await interaction.response.edit_message(embed=embed)
 
-    @discord.ui.button(label="Use Potion", style=discord.ButtonStyle.green, emoji="🧪")
-    async def use_potion_button(self, interaction: discord.Interaction, button: Button):
-        """
-        Handles the Use Potion button click.
-        """
-        # Find a health potion in the player's inventory
-        potion = next((item for item in self.player["inventory"] if item["name"] == "Health Potion"), None)
-        if not potion:
-            await interaction.response.send_message("You don't have any health potions!", ephemeral=True)
-            return
-
-        # Apply the potion's effect
-        health_restored = potion["effect"]
-        self.player["health"] = min(100, self.player["health"] + health_restored)
-        self.player["inventory"].remove(potion)  # Remove the potion from the inventory
-
-        # Update the player's data
-        update_player_data(self.player["user_id"], health=self.player["health"], inventory=self.player["inventory"])
-
-        # Create a new embed with updated combat status
-        embed = create_combat_embed(self.player, self.monster)
-        embed.add_field(
-            name="Combat Log",
-            value=f"You used a Health Potion and restored {health_restored} health! 🧪",
-            inline=False,
-        )
-
-        # Update the message with the new embed
-        await interaction.response.edit_message(embed=embed)
-
-    @discord.ui.button(label="Flee", style=discord.ButtonStyle.gray, emoji="🏃‍♂️")
-    async def flee_button(self, interaction: discord.Interaction, button: Button):
-        """
-        Handles the Flee button click.
-        """
-        # Create a new embed to indicate fleeing
-        embed = create_combat_embed(self.player, self.monster)
-        embed.add_field(name="Combat Log", value="You fled from combat! 🏃‍♂️", inline=False)
-
-        # Update the message and disable buttons
-        await interaction.response.edit_message(embed=embed, view=None)
-
     async def display_loot(self, interaction: discord.Interaction):
         """
         Displays the loot won after defeating the monster.
@@ -121,7 +80,7 @@ class CombatView(View):
         loot_embed = discord.Embed(title="Loot", color=discord.Color.gold())
         loot_embed.add_field(name="Gold", value=f"{gold} gold", inline=False)
         if items:
-            loot_embed.add_field(name="Items", value="\n".join([item["name"] for item in items]), inline=False)
-
-        # Send the loot embed
-        await interaction.followup.send(embed=loot_embed)
+            for item in items:
+                embed = ItemUI(item, context="loot").create_item_embed()
+                view = ItemUI(item, context="loot")
+                await interaction.followup.send(embed=embed, view=view)

@@ -1,6 +1,7 @@
 from discord.ext import commands
 from database import get_player_data
 from classes.inventory_ui import InventoryView
+from classes.item_ui import ItemUI
 from utils.mmo_utils.embed_utils import create_stats_embed, create_equipped_items_embed
 import threading
 
@@ -13,8 +14,11 @@ async def inv(ctx):
     if not player:
         await ctx.send("You are not registered as a player.")
         return
-    view = InventoryView(player)
-    await ctx.send("Select an item to view:", view=view)
+
+    for item in player["inventory"]:
+        embed = ItemUI(item, context="inventory").create_item_embed()
+        view = ItemUI(item, context="inventory")
+        await ctx.send(embed=embed, view=view)
 
 @commands.command()
 async def stats(ctx):
