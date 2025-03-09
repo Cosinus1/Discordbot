@@ -146,24 +146,29 @@ class SellButton(Button):
         equipped_items = player["equipped_items"]
 
         # Check if the item is equipped
-        if self.item["id"] in equipped_items:
+        if self.item["type"] in equipped_items and equipped_items[self.item["type"]]["id"] == self.item["id"]:
             # Unequip the item first
             for stat, value in self.item.get("stats", {}).items():
                 increment_player_stat(interaction.user.id, stat, -value)
-            del equipped_items[self.item["id"]]
+            del equipped_items[self.item["type"]]
             update_player_data(interaction.user.id, equipped_items=equipped_items)
 
-        # Remove the item from the inventory
-        inventory.remove(self.item)
-        item_manager.remove_item(self.item["id"])
-        update_player_data(interaction.user.id, inventory=inventory)
+        # Find the item in the inventory by its ID
+        item_to_remove = next((item for item in inventory if item["id"] == self.item["id"]), None)
+        if item_to_remove:
+            # Remove the item from the inventory
+            inventory.remove(item_to_remove)
+            item_manager.remove_item(self.item["id"])
+            update_player_data(interaction.user.id, inventory=inventory)
 
-        # Add the item's price to the player's money
-        player_money = get_user_data(interaction.user.id).get("money", 0)
-        new_money = player_money + self.item["price"]
-        update_user_data(interaction.user.id, money=new_money)
+            # Add the item's price to the player's money
+            player_money = get_user_data(interaction.user.id).get("money", 0)
+            new_money = player_money + self.item["price"]
+            update_user_data(interaction.user.id, money=new_money)
 
-        await interaction.response.send_message(f"You sold {self.item['name']} for {self.item['price']} gold.", ephemeral=True)
+            await interaction.response.send_message(f"You sold {self.item['name']} for {self.item['price']} gold.", ephemeral=True)
+        else:
+            await interaction.response.send_message("Item not found in inventory.", ephemeral=True)
 
 class InventoryView(View):
     """
