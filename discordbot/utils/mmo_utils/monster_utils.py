@@ -86,11 +86,12 @@ def generate_monster_stats(rarity):
     """Generate stats for a monster based on its rarity."""
     modifiers = RARITY_MODIFIERS.get(rarity, {})
     health = random.randint(*modifiers.get("health_range", (50, 100)))
+    max_health = health
     attack = random.randint(*modifiers.get("attack_range", (10, 20)))
     armor = random.randint(*modifiers.get("armor_range", (5, 10)))
     gold = random.randint(*modifiers.get("gold_range", (10, 50)))
     
-    return health, attack, armor, gold
+    return health, max_health, attack, armor, gold
 
 def generate_monster_rewards(rarity):
     """Generate rewards for a monster based on its rarity."""
@@ -149,12 +150,14 @@ def get_monster(difficulty="easy"):
             base_rarity = rarity_tiers[current_index + 1]
     
     # Generate monster based on rarity
+    monster_stats = generate_monster_stats(base_rarity)
     monster = {
         "name": generate_monster_name(base_rarity),
         "NPC": True,
-        "health": generate_monster_stats(base_rarity)[0],
-        "attack": generate_monster_stats(base_rarity)[1],
-        "armor": generate_monster_stats(base_rarity)[2],
+        "health": monster_stats[0],
+        "max_health": monster_stats[1],
+        "attack": monster_stats[2],
+        "armor": monster_stats[3],
         "rarity": base_rarity,
         "rewards": generate_monster_rewards(base_rarity)
     }

@@ -1,6 +1,7 @@
 import discord
 from discord.ui import Select, View
 from utils.mmo_utils.embed_utils import create_item_embed
+from database import get_player_data
 
 class InventorySelect(Select):
     """
@@ -23,6 +24,7 @@ class InventorySelect(Select):
         """
         Handles the select menu interaction.
         """
+        player = get_player_data(interaction.user.id)
         # Find the selected item in the player's inventory
         item_id = int(self.values[0])
         item = next((item for item in interaction.user["inventory"] if item["id"] == item_id), None)
