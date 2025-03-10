@@ -3,7 +3,7 @@ from discord.ui import Button, View
 from utils.mmo_utils.embed_utils import create_combat_embed
 from utils.mmo_utils.combat_utils import calculate_damage
 from database import get_player_data, update_player_data, get_user_data, update_user_data
-from player_lifecycle import lifecycle_manager
+from classes.player_lifecycle import lifecycle_manager
 import random
 
 class CombatView(View):
