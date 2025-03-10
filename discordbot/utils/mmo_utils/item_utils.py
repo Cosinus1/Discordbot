@@ -19,7 +19,7 @@ RARITY_MODIFIERS = {
 }
 
 # Stat for each item type
-item_stats =  {
+STAT_CONSTRAINTS =  {
     "common": {
         "weapon": {"attack": 5},
         "shield": {"armor": 3},
