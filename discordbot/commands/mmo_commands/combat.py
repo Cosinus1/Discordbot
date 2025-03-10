@@ -3,11 +3,11 @@ from discord import File
 from discord.ext import commands
 from database import get_player_data, update_player_data
 from classes.combat_ui import CombatView
-from utils.mmo_utils.monster_utils import get_monster
+from utils.mmo_utils.monster_utils import get_monster, get_monster_base_name
 from utils.mmo_utils.combat_utils import calculate_damage
 from utils.mmo_utils.embed_utils import create_combat_embed, create_hp_embed
-
 import asyncio
+import os
 
 @commands.command()
 async def pve(ctx, difficulty="easy"):
@@ -15,9 +15,20 @@ async def pve(ctx, difficulty="easy"):
     monster = get_monster(difficulty)
     embed = create_combat_embed(player, monster)
     view = CombatView(player, monster)
-    file = File("data/mmo/PNG/goblin_vecto.png", filename="goblin_vecto.png")
+    
+    # Get the appropriate image for the monster
+    # Extract the base name from the monster name (ignoring prefixes and suffixes)
+    base_name = get_monster_base_name(monster["name"])
+    
+    # Try to find the image file
+    image_path = f"data/mmo/PNG/{base_name.lower()}_vecto.png"
+    if not os.path.exists(image_path):
+        # Use a default image if the specific one isn't found
+        image_path = "data/mmo/PNG/monster_default.png"
+    
+    file = File(image_path, filename=f"{base_name.lower()}_vecto.png")
     await ctx.send(embed=embed, file=file, view=view)
-
+    
 @commands.command()
 async def attack(ctx, target: discord.Member):
     attacker = get_player_data(ctx.author.id)

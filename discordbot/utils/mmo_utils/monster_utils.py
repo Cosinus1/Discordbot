@@ -6,7 +6,7 @@ RARITY_MODIFIERS = {
     "common": {
         "prefixes": ["Weak", "Small", "Pathetic"],
         "suffixes": ["of the Forest", "of the Swamp"],
-        "base_names": ["Goblin", "Slime", "Rat"],
+        "base_names": ["Goblin", "Slime"],
         "health_range": (40, 60),
         "attack_range": (8, 12),
         "armor_range": (4, 6),
@@ -22,7 +22,7 @@ RARITY_MODIFIERS = {
     "rare": {
         "prefixes": ["Strong", "Large", "Fierce"],
         "suffixes": ["of the Mountains", "of the Caves"],
-        "base_names": ["Orc", "Troll", "Wolf"],
+        "base_names": ["Orc", "Troll"],
         "health_range": (80, 120),
         "attack_range": (15, 25),
         "armor_range": (8, 12),
@@ -38,7 +38,7 @@ RARITY_MODIFIERS = {
     "epic": {
         "prefixes": ["Mighty", "Giant", "Terrifying"],
         "suffixes": ["of the Abyss", "of the Depths"],
-        "base_names": ["Demon", "Elemental", "Giant"],
+        "base_names": ["Demon", "Elemental"],
         "health_range": (400, 600),
         "attack_range": (30, 50),
         "armor_range": (20, 30),
@@ -52,9 +52,9 @@ RARITY_MODIFIERS = {
         ]
     },
     "legendary": {
-        "prefixes": ["Ancient", "Colossal", "Demonic"],
+        "prefixes": ["Ancient", "Colossal"],
         "suffixes": ["of the Void", "of the Apocalypse"],
-        "base_names": ["Dragon", "Phoenix", "Leviathan"],
+        "base_names": ["Demon King" ],
         "health_range": (1000, 1500),
         "attack_range": (80, 120),
         "armor_range": (50, 70),
@@ -128,6 +128,33 @@ def generate_monster_rewards(rarity):
         "gold": gold,
         "items": items
     }
+
+def get_monster_base_name(monster_name):
+    """
+    Extract the base name from a monster's full name.
+    E.g., "Weak Goblin of the Forest" -> "Goblin"
+    """
+    # Split the name into words
+    words = monster_name.split()
+    
+    # Get all possible base names from monster_utils
+    from utils.mmo_utils.monster_utils import RARITY_MODIFIERS
+    all_base_names = []
+    for rarity in RARITY_MODIFIERS:
+        all_base_names.extend(RARITY_MODIFIERS[rarity]["base_names"])
+    
+    # Find the first word that matches a base name
+    for word in words:
+        if word in all_base_names:
+            return word
+    
+    # If no base name is found, return the middle word as a fallback
+    if len(words) >= 3:
+        return words[1]  # Middle word
+    elif len(words) == 2:
+        return words[1]  # Second word
+    else:
+        return words[0]  # Only word
 
 def get_monster(difficulty="easy"):
     """Get a random monster with generated stats, name, and rewards based on difficulty."""
