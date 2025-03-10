@@ -3,7 +3,7 @@ from discord import File
 from discord.ext import commands
 from database import get_player_data, update_player_data
 from classes.combat_ui import CombatView
-from player_lifecycle import lifecycle_manager
+from classes.player_lifecycle import lifecycle_manager
 from utils.mmo_utils.monster_utils import get_monster, get_monster_base_name
 from utils.mmo_utils.combat_utils import calculate_damage
 from utils.mmo_utils.embed_utils import create_combat_embed, create_hp_embed
