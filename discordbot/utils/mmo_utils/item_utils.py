@@ -18,43 +18,58 @@ RARITY_MODIFIERS = {
     }
 }
 
-# Stat for each item type
-STAT_CONSTRAINTS =  {
-    "common": {
-        "weapon": {"attack": 5},
-        "shield": {"armor": 3},
-        "helm": {"armor": 2, "health": 10},
-        "chest": {"armor": 4, "health": 15},
-        "legs": {"armor": 3, "health": 10},
-        "feet": {"armor": 1, "health": 5}
+# Stat constraints for each item type
+STAT_CONSTRAINTS = {
+    "weapon": {
+        "attack": {"min": 5, "max": 50},
+        "critical_chance": {"min": 0.0, "max": 0.2},
+        "lifesteal": {"min": 0.0, "max": 0.1},  # Only for epic and legendary
+        "armor_penetration": {"min": 0.0, "max": 0.3},
+        "stunt_chance": {"min": 0.0, "max": 0.1}  # Only for epic and legendary
     },
-    "rare": {
-        "weapon": {"attack": 10, "critical_chance": 0.05},
-        "shield": {"armor": 6, "health": 20},
-        "helm": {"armor": 4, "health": 25},
-        "chest": {"armor": 8, "health": 30},
-        "legs": {"armor": 6, "health": 20},
-        "feet": {"armor": 3, "health": 15}
+    "shield": {
+        "armor": {"min": 10, "max": 60},
+        "stunt_chance": {"min": 0.0, "max": 0.2},  # Only for epic and legendary
+        "health": {"min": 0, "max": 50},
+        "parry_chance": {"min": 0.0, "max": 0.15}  # Only for epic and legendary
     },
-    "epic": {
-        "weapon": {"attack": 18, "critical_chance": 0.1, "lifesteal": 0.05},
-        "shield": {"armor": 12, "health": 40, "stunt_chance": 0.08},
-        "helm": {"armor": 8, "health": 45, "critical_chance": 0.03},
-        "chest": {"armor": 15, "health": 60, "critical_chance": 0.03},
-        "legs": {"armor": 10, "health": 40},
-        "feet": {"armor": 6, "health": 30}
+    "helm": {
+        "armor": {"min": 5, "max": 30},
+        "health": {"min": 10, "max": 50},
+        "critical_chance": {"min": 0.0, "max": 0.1}
     },
-    "legendary": {
-        "weapon": {"attack": 30, "critical_chance": 0.15, "lifesteal": 0.1, "armor_penetration": 0.2},
-        "shield": {"armor": 20, "health": 80, "stunt_chance": 0.15, "parry_chance": 0.1},
-        "helm": {"armor": 15, "health": 70, "critical_chance": 0.05},
-        "chest": {"armor": 25, "health": 100, "critical_chance": 0.05},
-        "legs": {"armor": 18, "health": 60},
-        "feet": {"armor": 12, "health": 50}
+    "chest": {
+        "armor": {"min": 10, "max": 40},
+        "health": {"min": 20, "max": 70},
+        "critical_chance": {"min": 0.0, "max": 0.1}
+    },
+    "legs": {
+        "armor": {"min": 8, "max": 35},
+        "health": {"min": 15, "max": 60},
+        "critical_chance": {"min": 0.0, "max": 0.1}
+    },
+    "feet": {
+        "armor": {"min": 5, "max": 25},
+        "health": {"min": 10, "max": 40},
+        "critical_chance": {"min": 0.0, "max": 0.1}
     }
 }
 
+# Stat budget based on rarity
+STAT_BUDGET = {
+    "common": 50,
+    "rare": 80,
+    "epic": 120,
+    "legendary": 200
+}
 
+# Base price multiplier based on rarity
+PRICE_MULTIPLIER = {
+    "common": 10,
+    "rare": 50,
+    "epic": 100,
+    "legendary": 500
+}
 
 # Item templates for the shop
 ITEM_TEMPLATES = {
