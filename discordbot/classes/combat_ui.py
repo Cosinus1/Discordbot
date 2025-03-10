@@ -3,6 +3,7 @@ from discord.ui import Button, View
 from utils.mmo_utils.embed_utils import create_combat_embed
 from utils.mmo_utils.combat_utils import calculate_damage
 from database import get_player_data, update_player_data, get_user_data, update_user_data
+from player_lifecycle import lifecycle_manager
 import random
 
 class CombatView(View):
@@ -41,9 +42,6 @@ class CombatView(View):
         monster_damage, is_critical = calculate_damage(self.monster, self.player)
         self.player["health"] -= monster_damage
         
-        # Update the player's health in the database
-        update_player_data(self.player["user_id"], health=self.player["health"])
-        
         # Add monster's attack to combat log
         combat_log.append(f"The {self.monster['name']} attacked you for {monster_damage} damage! {'**Critical Hit!**' if is_critical else ''}")
     
@@ -53,9 +51,37 @@ class CombatView(View):
     
         # Check if the player is defeated
         if self.player["health"] <= 0:
-            embed.add_field(name="Defeat!", value=f"You were defeated by the {self.monster['name']}! 💀", inline=False)
+            # Mark player as dead
+            self.player["health"] = 0
+            update_player_data(self.player["user_id"], health=self.player["health"])
+            
+            # Handle player death via lifecycle manager
+            resurrection_time = lifecycle_manager.mark_player_dead(self.player["user_id"])
+            
+            # Schedule resurrection
+            def update_health_callback(user_id):
+                player = get_player_data(user_id)
+                if player:
+                    player["health"] = player.get("max_health", 100)
+                    update_player_data(user_id, health=player["health"])
+            
+            await lifecycle_manager.schedule_resurrection(
+                interaction.client, 
+                self.player["user_id"], 
+                interaction.user,
+                update_health_callback
+            )
+            
+            embed.add_field(
+                name="Defeat!", 
+                value=f"You were defeated by the {self.monster['name']}! 💀\nYou will be resurrected in {lifecycle_manager.resurrection_time_minutes} minutes.", 
+                inline=False
+            )
             await interaction.response.edit_message(embed=embed, view=None)  # Disable buttons
             return
+        else:
+            # Update the player's health in the database only if they're still alive
+            update_player_data(self.player["user_id"], health=self.player["health"])
     
         # Update the message with the new embed
         await interaction.response.edit_message(embed=embed)
