@@ -1,68 +1,80 @@
 import random
 
 def calculate_damage(attacker, defender):
-    """Calculate damage dealt by the attacker to the defender."""
-    # Base damage calculation
-    base_damage = attacker.get("attack", 0) - (defender.get("stats", {}).get("armor", 0)-(attacker.get("stats", {}).get("armor_penetration", 0)))
-    base_damage = max(1, base_damage)  # Ensure at least 1 damage
-
-    # Critical hit chance
-    critical_chance = attacker.get("stats", {}).get("critical_chance", 0)
-    if random.random() < critical_chance:
-        base_damage *= 2  # Double damage on critical hit
-        return base_damage, True  # Return damage and critical hit flag
-
-    return base_damage, False  # Return damage and no critical hit
-
-def simulate_combat(player, monster):
-    """Simulate combat between the player and a monster."""
-    combat_log = []
-    while player["health"] > 0 and monster["health"] > 0:
-        # Player attacks monster
-        player_damage, is_critical = calculate_damage(player, monster)
-        monster["health"] -= player_damage
-        combat_log.append(
-            f"You dealt {player_damage} damage to the {monster['name']}!"
-            + (" **Critical Hit!**" if is_critical else "")
-        )
-
-        # Apply lifesteal
-        lifesteal = player.get("stats", {}).get("lifesteal", 0)
-        if lifesteal > 0:
-            health_gained = int(player_damage * lifesteal)
-            player["health"] = min(100, player["health"] + health_gained)
-            combat_log.append(f"You gained {health_gained} health from lifesteal!")
-                  
-        # Check if monster is stunned
-        stunt_chance = player.get("stats", {}).get("stunt_chance", 0)
-        is_monster_stunted = False
-        if random.random() < stunt_chance:
-            combat_log.append(f"You stunned {monster['name']}!")
-            is_monster_stunted = True
-            
-        # Check if monster is dead
-        if monster["health"] <= 0:
-            break
-
-        # Monster attacks player
-        if not is_monster_stunted:
-            monster_damage, is_critical = calculate_damage(monster, player)
-            
-            # Check if the attack is parried
-            parry_chance = player.get("stats", {}).get("parry_chance", 0)
-            if random.random() < parry_chance:
-                combat_log.append("You parried the attack!")
-            else:
-                player["health"] -= monster_damage
-                combat_log.append(
-                    f"The {monster['name']} dealt {monster_damage} damage to you!"
-                    + (" **Critical Hit!**" if is_critical else "")
-                )
+    """
+    Calculate damage dealt by the attacker to the defender,
+    taking into account all available stats from both participants.
     
-            # Check if player is stunned
-            stunt_chance = monster.get("stats", {}).get("stunt_chance", 0)
-            if random.random() < stunt_chance:
-                combat_log.append(f"The {monster['name']} stunned you! You skip your next turn.")
-                continue  # Skip player's next turn
+    Args:
+        attacker (dict): Attacker's stats
+        defender (dict): Defender's stats
+        
+    Returns:
+        tuple: (damage_amount, is_critical_hit)
+    """
+    # Get attacker's stats
+    attack_value = attacker.get("attack", 0)
+    attacker_stats = attacker.get("stats", {})
+    
+    # Get defender's stats
+    defender_armor = defender.get("armor", 0)
+    if defender_armor == 0:  # If no direct armor attribute
+        defender_armor = defender.get("stats", {}).get("armor", 0)
+    
+    # Get special combat stats
+    armor_penetration = attacker_stats.get("armor_penetration", 0)
+    critical_chance = attacker_stats.get("critical_chance", 0)
+    
+    # Calculate effective armor after penetration
+    effective_armor = defender_armor * (1 - armor_penetration)
+    
+    # Base damage calculation
+    base_damage = max(1, attack_value - effective_armor)
+    
+    # Round to 2 decimal places
+    base_damage = round(base_damage, 2)
+    
+    # Critical hit check
+    is_critical = random.random() < critical_chance
+    if is_critical:
+        base_damage *= 2
+        base_damage = round(base_damage, 2)
+    
+    return base_damage, is_critical
 
-    return combat_log, player["health"]
+def apply_combat_effects(attacker, defender, damage_dealt):
+    """
+    Apply additional combat effects like lifesteal, stuns, etc.
+    
+    Args:
+        attacker (dict): Attacker's stats
+        defender (dict): Defender's stats
+        damage_dealt (float): Amount of damage that was dealt
+        
+    Returns:
+        dict: Effects applied with their values
+    """
+    effects = {}
+    attacker_stats = attacker.get("stats", {})
+    
+    # Lifesteal effect
+    lifesteal = attacker_stats.get("lifesteal", 0)
+    if lifesteal > 0:
+        heal_amount = round(damage_dealt * lifesteal, 2)
+        # Update attacker's health directly
+        new_health = min(
+            attacker.get("max_health", attacker.get("health", 100)), 
+            attacker.get("health", 0) + heal_amount
+        )
+        attacker["health"] = round(new_health, 2)
+        effects["lifesteal"] = heal_amount
+    
+    # Stun effect
+    stunt_chance = attacker_stats.get("stunt_chance", 0)
+    effects["stunned"] = random.random() < stunt_chance
+    
+    # Parry effect
+    parry_chance = defender.get("stats", {}).get("parry_chance", 0)
+    effects["parried"] = random.random() < parry_chance
+    
+    return effects

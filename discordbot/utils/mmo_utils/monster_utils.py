@@ -7,10 +7,6 @@ RARITY_MODIFIERS = {
         "prefixes": ["Weak", "Small", "Pathetic"],
         "suffixes": ["of the Forest", "of the Swamp"],
         "base_names": ["Goblin", "Slime"],
-        "health_range": (40, 60),
-        "attack_range": (8, 12),
-        "armor_range": (4, 6),
-        "gold_range": (5, 15),
         "item_templates": [
             {"name": "Rusty Sword", "type": "weapon"},
             {"name": "Cloth Armor", "type": "chest"},
@@ -23,10 +19,6 @@ RARITY_MODIFIERS = {
         "prefixes": ["Strong", "Large", "Fierce"],
         "suffixes": ["of the Mountains", "of the Caves"],
         "base_names": ["Orc", "Troll"],
-        "health_range": (80, 120),
-        "attack_range": (15, 25),
-        "armor_range": (8, 12),
-        "gold_range": (40, 60),
         "item_templates": [
             {"name": "Iron Axe", "type": "weapon"},
             {"name": "Chainmail Armor", "type": "chest"},
@@ -39,10 +31,6 @@ RARITY_MODIFIERS = {
         "prefixes": ["Mighty", "Giant", "Terrifying"],
         "suffixes": ["of the Abyss", "of the Depths"],
         "base_names": ["Demon", "Elemental"],
-        "health_range": (400, 600),
-        "attack_range": (30, 50),
-        "armor_range": (20, 30),
-        "gold_range": (300, 700),
         "item_templates": [
             {"name": "Demonic Wand", "type": "weapon"},
             {"name": "Crystal Armor", "type": "chest"},
@@ -55,10 +43,6 @@ RARITY_MODIFIERS = {
         "prefixes": ["Ancient", "Colossal"],
         "suffixes": ["of the Void", "of the Apocalypse"],
         "base_names": ["Demon King" ],
-        "health_range": (1000, 1500),
-        "attack_range": (80, 120),
-        "armor_range": (50, 70),
-        "gold_range": (5000, 7000),
         "item_templates": [
             {"name": "Obsidian Tooth", "type": "weapon"},
             {"name": "Dragon Scale Armor", "type": "chest"},
@@ -69,6 +53,32 @@ RARITY_MODIFIERS = {
     }
 }
 
+STATS_MODIFIERS= {
+    "common": {
+        "health_range": [80, 120],
+        "attack_range": [8, 12],
+        "armor_range": [0, 2],
+        "gold_range": (5, 15),
+    },
+    "rare": {
+        "health_range": [150, 200],
+        "attack_range": [12, 18],
+        "armor_range": [2, 5],
+        "gold_range": (50, 150),
+    },
+    "epic": {
+        "health_range": [250, 350],
+        "attack_range": [18, 25],
+        "armor_range": [5, 10],
+        "gold_range": (500, 1500)
+    },
+    "legendary": {
+        "health_range": [400, 600],
+        "attack_range": [25, 40],
+        "armor_range": [10, 20],
+        "gold_range": (5000, 15000),
+    }
+}
 def generate_monster_name(rarity):
     """Generate a cool name for a monster based on its rarity."""
     modifiers = RARITY_MODIFIERS.get(rarity, {})
@@ -84,7 +94,7 @@ def generate_monster_name(rarity):
 
 def generate_monster_stats(rarity):
     """Generate stats for a monster based on its rarity."""
-    modifiers = RARITY_MODIFIERS.get(rarity, {})
+    modifiers = STATS_MODIFIERS.get(rarity, {})
     health = random.randint(*modifiers.get("health_range", (50, 100)))
     max_health = health
     attack = random.randint(*modifiers.get("attack_range", (10, 20)))
