@@ -4,6 +4,7 @@ from database import get_user_data, update_user_data, get_player_data, update_pl
 from datetime import datetime
 from config import DAILY_EXP_THRESHOLD, EXP_PAR_MINUTE_VOCAL
 from events.on_voice_state_update import user_join_times
+from events.on_message import MESSAGE_CONTENT_LIMIT
 from config import bot
 from classes.item_manager import item_manager
 from classes.shop_manager import shop_manager
@@ -20,7 +21,7 @@ async def admin(ctx, action: str, target: str = None, value: int = None):
     # Validate the action
     action = action.lower()
     valid_actions = [
-        "setlevel", "setmoney", "sethealth", "setexp", 
+        "setlevel", "setmoney", "sethealth", "setexp", "setctxlimit"
         "resetinventory", "revive", "kill", "additem", "removeitem", "resetstuff", "rmitems"
     ]
     if action not in valid_actions:
@@ -32,7 +33,9 @@ async def admin(ctx, action: str, target: str = None, value: int = None):
         # Special case: rmitems affects all players and the item_manager
         await handle_rmitems(ctx)
         return
-
+    if action == "setctxlimit":
+        await set_context_limit(ctx, value)
+        
     # For other actions, check if the target is valid
     if not target:
         await ctx.send(f"{ctx.author.mention}, you must specify a target (user or 'all').")
@@ -44,6 +47,13 @@ async def admin(ctx, action: str, target: str = None, value: int = None):
     else:
         await handle_single_target(ctx, action, target, value)
 
+async def set_context_limit(ctx, value):
+    if value<0:
+        await ctx.send(f{ctx.author.mention}, "You must select a positive value")
+        return
+    MESSAGE_CONTENT_LIMIT = value
+    await ctx.send(f{ctw.author.mention}, "Context Message limit set to : " + str(MESSAGE_CONTENT_LIMIT))
+    
 async def handle_rmitems(ctx):
     """Handle the rmitems action (reset all items and player inventories)."""
     # Remove all items from the item_manager
