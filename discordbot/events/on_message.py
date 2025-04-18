@@ -6,6 +6,8 @@ from datetime import datetime
 from utils.roles_utils import check_role_upgrade
 from utils.exp_utils import check_level_upgrade
 
+MESSAGE_CONTENT_LIMIT = 11
+
 async def start(message):
     if message.author.bot:
         return
@@ -44,45 +46,81 @@ async def start(message):
     if message.author.bot:
         return
     
-    if ("wtf" or "omg") in message.content.lower():
+    message_content = message.content.lower()
+
+    if ("wtf" or "omg") in message_content:
         emoji = discord.utils.get(message.guild.emojis, name="Chat_Cosi")
         if emoji:
             await message.add_reaction(emoji)
-    
-    if "quoi" in message.content.lower():
-        emoji = discord.utils.get(message.guild.emojis, name="Chat_Cosi")
-        await message.channel.send(f"feur {emoji}")
-    
-    if message.content.lower() == 'wiwiwi':
+
+    if "quoi" in message_content:
+        # Check if "quoi is actually at the end of  the sentence"
+        message_content = message.content.lower().strip()
+        # Remove punctuation from the end for better matching
+        while message_content and message_content[-1] in ".,!?;:":
+            message_content = message_content[:-1]
+            
+        # Check if the last word is "quoi"
+        if message_content.split()[-1] == "quoi":
+            emoji = discord.utils.get(message.guild.emojis, name="Chat_Cosi")
+            await message.channel.send(f"feur {emoji}")
+        
+    if message_content == 'wiwiwi':
         await message.channel.send("wiwiwi", file=discord.File("wiwiwi.gif"))
     
-    #Deepseek response to bot mention
+    # Modify the DeepSeek response part
     if bot.user in message.mentions:
         # Extract the message content without the mention
         message_content = message.content.replace(f"<@{bot.user.id}>", "").strip()
         
-        # Get a response from DeepSeek
-        response = await get_deepseek_response(message_content, user)
+        # Get the previous messages for context (up to 10)
+        context_messages = []
+        async for msg in message.channel.history(limit=MESSAGE_CONTENT_LIMIT):
+            if msg.id != message.id:  # Skip the current message
+                context_messages.insert(0, {"author": msg.author.display_name, "content": msg.content})
+                if len(context_messages) >= MESSAGE_CONTENT_LIMIT-1:
+                    break
         
-        # Send the response back to the channel
-        await message.reply(response)
+        # Get a response from DeepSeek with context
+        response = await get_deepseek_response(message_content, user, context_messages)
+        
+    # Send the response back to the channel
+    await message.reply(response)
     
     # Allow other commands to work
     await bot.process_commands(message)
     
 # Function to call the DeepSeek API
-async def get_deepseek_response(message_content, user):
+async def get_deepseek_response(message_content, user, context_messages=None):
     if user["role"] == "Gueux":
         MAX_TOKENS = 100
-    else :
+    else:
         MAX_TOKENS = 1000
+    
     headers = {
         "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
         "Content-Type": "application/json"
     }
+    
+    messages = []
+    
+    # Add system message with context explanation if we have context
+    if context_messages and len(context_messages) > 0:
+        context_prompt = "Here's the recent conversation context to help you understand the query better:\n\n"
+        for msg in context_messages:
+            context_prompt += f"{msg['author']}: {msg['content']}\n"
+        context_prompt += "\nPlease use this context only if it's relevant to answering the current message.\n"
+        context_prompt += "I would you to respond to the following message adressed to you accordingly. \n" 
+        context_prompt += "Adapt your response length based on the number of the maximum amount of tokens given to you which is :" + str(MAX_TOKENS) + "\n \n"
+
+        messages.append({"role": "system", "content": context_prompt})
+    
+    # Add the user's message
+    messages.append({"role": "user", "content": message_content})
+    
     data = {
         "model": "deepseek-chat",
-        "messages": [{"role": "user", "content": message_content}],
+        "messages": messages,
         "max_tokens": MAX_TOKENS  
     }
 
