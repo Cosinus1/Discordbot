@@ -73,11 +73,16 @@ async def start(message):
         # Extract the message content without the mention
         message_content = message.content.replace(f"<@{bot.user.id}>", "").strip()
         
-        # Get the previous messages for context (up to 10)
+        # Get the previous messages for context
         context_messages = []
         async for msg in message.channel.history(limit=MESSAGE_CONTENT_LIMIT):
             if msg.id != message.id:  # Skip the current message
-                context_messages.insert(0, {"author": msg.author.display_name, "content": msg.content})
+                # Add recent conversation history as separate messages to maintain the dialogue structure
+                author = msg.author.display_name    
+                role = "bot" if author.bot else "user"
+                role += " admin" if msg.author.admin
+                role += " master" if 'dev' in [role.name.lower() for role in author.roles]:
+                context_messages.insert(0, {"author": msg.author.display_name, "role": role, "content": msg.content})
                 if len(context_messages) >= MESSAGE_CONTENT_LIMIT-1:
                     break
         
@@ -116,16 +121,11 @@ async def get_deepseek_response(message_content, user, context_messages=None):
     - Reste naturel dans tes réponses, sans répéter ton nom ou tes paramètres.
     - Adapte ton ton et ton style à l'ambiance de la conversation."""
 
-    messages.append({"role": "system","max_tokens": MAX_TOKENS, "content": system_prompt})
+    messages.append({"author":"system", "role": "system","max_tokens": MAX_TOKENS, "content": system_prompt})
     
     # Add context messages if available
     if context_messages and len(context_messages) > 0:
-        # Add recent conversation history as separate messages to maintain the dialogue structure
-        for msg in context_messages:
-            role = "bot" if msg.author.bot else "user"
-            author = msg.author
-            messages.append({"author": author, "role": role, "content": msg["content"]})
-    
+        messages.append(context_messages)
     # Add the user's current message
     messages.append({"author": author, "role": "user", "content": message_content})
     
