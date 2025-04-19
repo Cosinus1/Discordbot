@@ -68,10 +68,10 @@ async def start(message):
     if message_content == 'wiwiwi':
         await message.channel.send("wiwiwi", file=discord.File("wiwiwi.gif"))
     
-    # Modify the DeepSeek response part
+    # DeepSeek response part
     if bot.user in message.mentions:
-        # Extract the message content without the mention
-        message_content = message.content.replace(f"<@{bot.user.id}>", "").strip()
+
+        message_to_bot = {"author": message.author, "roles": message.author.roles, "content": message.content}
         
         # Get the previous messages for context
         context_messages = []
@@ -87,7 +87,7 @@ async def start(message):
                     break
         
         # Get a response from DeepSeek with context
-        response = await get_deepseek_response(message_content, user, context_messages)
+        response = await get_deepseek_response(message_to_bot, user, context_messages)
         
         # Send the response back to the channel
         await message.reply(response)
@@ -96,7 +96,7 @@ async def start(message):
     await bot.process_commands(message)
     
 # Function to call the DeepSeek API
-async def get_deepseek_response(message_content, user, context_messages=None):
+async def get_deepseek_response(message, user, context_messages=None):
     if user["role"] == "Gueux":
         MAX_TOKENS = 100
     else:
@@ -127,7 +127,7 @@ async def get_deepseek_response(message_content, user, context_messages=None):
     if context_messages and len(context_messages) > 0:
         messages.append(context_messages)
     # Add the user's current message
-    messages.append({"author": message.author.display_name, "role": "user", "content": message_content})
+    messages.append(message)
     
     data = {
         "model": "deepseek-chat",
