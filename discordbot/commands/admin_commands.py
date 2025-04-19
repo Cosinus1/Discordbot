@@ -47,13 +47,35 @@ async def admin(ctx, action: str, target: str = None, value: int = None):
     else:
         await handle_single_target(ctx, action, target, value)
 
-async def set_context_limit(ctx, value):
-    if value < 0:
-        await ctx.send(f"{ctx.author.mention}, You must select a positive value")
+@commands.command()
+async def setcontextlimit(ctx, value: int = None):
+    """Admin command to set how many context messages the bot considers when responding."""
+    # Check if the user has the 'dev' role
+    if 'dev' not in [role.name.lower() for role in ctx.author.roles]:
+        await ctx.send(f"{ctx.author.mention}, you do not have permission to use this command.")
         return
-    MESSAGE_CONTENT_LIMIT = value
-    await ctx.send(f"{ctx.author.mention}, Context Message limit set to: {MESSAGE_CONTENT_LIMIT}")
     
+    # Import the variable from on_message module
+    from events.on_message import MESSAGE_CONTEXT_LIMIT
+    import sys
+    
+    # If no value is provided, display the current setting
+    if value is None:
+        await ctx.send(f"{ctx.author.mention}, current context limit is set to **{MESSAGE_CONTEXT_LIMIT}** messages.")
+        return
+    
+    # Validate the value
+    if value < 0:
+        await ctx.send(f"{ctx.author.mention}, context limit must be a non-negative number.")
+        return
+    
+    # Update the global variable in the on_message module
+    old_value = MESSAGE_CONTEXT_LIMIT
+    module = sys.modules['events.on_message']
+    module.MESSAGE_CONTEXT_LIMIT = value
+    
+    await ctx.send(f"{ctx.author.mention}, context limit changed from **{old_value}** to **{value}** messages.")
+
 async def handle_rmitems(ctx):
     """Handle the rmitems action (reset all items and player inventories)."""
     # Remove all items from the item_manager
