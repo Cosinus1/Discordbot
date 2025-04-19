@@ -121,30 +121,44 @@ async def get_deepseek_response(message, user, context_messages=None):
     - Reste naturel dans tes réponses, sans répéter ton nom ou tes paramètres.
     - Adapte ton ton et ton style à l'ambiance de la conversation."""
 
-    messages.append({"author":"system", "role": "system", "content": system_prompt})
+    messages.append({"role": "system", "content": system_prompt})
     
     # Add context messages if available
-    if context_messages and len(context_messages) > 0:
-        messages.append(context_messages)
-    # Add the user's current message
-    messages.append(message)
+    if context_messages:
+        for msg in context_messages:
+            # Convert the message format to what DeepSeek expects
+            role = "assistant" if msg["roles"] == "bot" else "user"
+            messages.append({
+                "role": role,
+                "content": msg["content"]
+            })
+    
+    # Add the current user message
+    messages.append({
+        "role": "user",
+        "content": message["content"]
+    })
     
     data = {
         "model": "deepseek-chat",
         "messages": messages,
-        "max_tokens": MAX_TOKENS  
+        "max_tokens": MAX_TOKENS,
+        "temperature": 0.7  # Added for better response variability
     }
 
     try:
         # Send the request to the API
         response = requests.post(DEEPSEEK_API_URL, headers=headers, json=data)
+        response.raise_for_status()  # This will raise an exception for 4XX/5XX errors
 
         # Check if the request was successful
         if response.status_code == 200:
             return response.json()["choices"][0]["message"]["content"]
         else:
-            return f"Désolé, je n'ai pas pu comprendre votre message. (Status Code: {response.status_code})"
+            return f"Désolé, je n'ai pas pu comprendre votre message. (Status Code: {response.status_code}, Response: {response.text})"
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err} - Response: {response.text if 'response' in locals() else ''}")
+        return f"Désolé, une erreur HTTP s'est produite: {http_err}"
     except Exception as e:
-        # Print any exceptions that occur
         print(f"An error occurred while calling the DeepSeek API: {e}")
-        return (f"Désolé, une erreur s'est produite lors de la communication avec l'API : {e}")
+        return "Désolé, une erreur s'est produite lors de la communication avec l'API."
