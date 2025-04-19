@@ -71,7 +71,7 @@ async def start(message):
     # DeepSeek response part
     if bot.user in message.mentions:
 
-        message_to_bot = {"author": message.author, "roles": message.author.roles, "content": message.content}
+        message_to_bot = {"author": message.author.display_name, "roles": "user", "content": message.content}
         
         # Get the previous messages for context
         context_messages = []
@@ -81,7 +81,7 @@ async def start(message):
                 author = msg.author   
                 roles = "bot" if author.bot else "user"
                 #roles += " admin" if msg.author.admin else None
-                roles += " master" if 'dev' in [role.name.lower() for role in author.roles] else ""
+                #roles += " master" if 'dev' in [role.name.lower() for role in author.roles] else ""
                 context_messages.insert(0, {"author": author.display_name, "roles": roles, "content": msg.content})
                 if len(context_messages) >= MESSAGE_CONTENT_LIMIT-1:
                     break
@@ -121,7 +121,7 @@ async def get_deepseek_response(message, user, context_messages=None):
     - Reste naturel dans tes réponses, sans répéter ton nom ou tes paramètres.
     - Adapte ton ton et ton style à l'ambiance de la conversation."""
 
-    messages.append({"author":"system", "role": "system","max_tokens": MAX_TOKENS, "content": system_prompt})
+    messages.append({"author":"system", "role": "system", "content": system_prompt})
     
     # Add context messages if available
     if context_messages and len(context_messages) > 0:
