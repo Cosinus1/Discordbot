@@ -78,11 +78,11 @@ async def start(message):
         async for msg in message.channel.history(limit=MESSAGE_CONTENT_LIMIT):
             if msg.id != message.id:  # Skip the current message
                 # Add recent conversation history as separate messages to maintain the dialogue structure
-                author = msg.author.display_name    
-                role = "bot" if author.bot else "user"
-                role += " admin" if msg.author.admin else None
-                role += " master" if 'dev' in [role.name.lower() for role in author.roles] else None
-                context_messages.insert(0, {"author": msg.author.display_name, "role": role, "content": msg.content})
+                author = msg.author   
+                roles = "bot" if author.bot else "user"
+                roles += " admin" if msg.author.admin else None
+                roles += " master" if 'dev' in [role.name.lower() for role in author.roles] else None
+                context_messages.insert(0, {"author": author.display_name, "roles": roles, "content": msg.content})
                 if len(context_messages) >= MESSAGE_CONTENT_LIMIT-1:
                     break
         
