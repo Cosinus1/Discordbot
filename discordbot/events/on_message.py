@@ -127,7 +127,7 @@ async def get_deepseek_response(message_content, user, context_messages=None):
     if context_messages and len(context_messages) > 0:
         messages.append(context_messages)
     # Add the user's current message
-    messages.append({"author": author, "role": "user", "content": message_content})
+    messages.append({"author": message.author.display_name, "role": "user", "content": message_content})
     
     data = {
         "model": "deepseek-chat",
