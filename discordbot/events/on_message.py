@@ -106,7 +106,7 @@ async def get_deepseek_response(message_content, user, context_messages=None):
     
     # Add system message with instructions and context
     system_prompt = """Tu es Méchatnicien, un assistant intelligent et sympathique sur un serveur Discord.
-    Tu dois répondre aux messages des utilisateurs de manière utile, amicale et concise.
+    Tu dois répondre aux messages des utilisateurs de manière utile. tu peux adapter ton caractère à la situation.
     Quelques règles importantes:
     - Adapte la longueur de tes réponses au nombre de tokens maximums disponibles.
     - N'hésite pas à être direct et aller droit au but.
@@ -116,17 +116,18 @@ async def get_deepseek_response(message_content, user, context_messages=None):
     - Reste naturel dans tes réponses, sans répéter ton nom ou tes paramètres.
     - Adapte ton ton et ton style à l'ambiance de la conversation."""
 
-    messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "system","max_tokens": MAX_TOKENS, "content": system_prompt})
     
     # Add context messages if available
     if context_messages and len(context_messages) > 0:
         # Add recent conversation history as separate messages to maintain the dialogue structure
         for msg in context_messages:
-            role = "assistant" if msg["is_bot"] else "user"
-            messages.append({"role": role, "content": msg["content"]})
+            role = "bot" if msg.author.bot else "user"
+            author = msg.author
+            messages.append({"author": author, "role": role, "content": msg["content"]})
     
     # Add the user's current message
-    messages.append({"role": "user", "content": message_content})
+    messages.append({"author": author, "role": "user", "content": message_content})
     
     data = {
         "model": "deepseek-chat",
