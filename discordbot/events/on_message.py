@@ -147,4 +147,4 @@ async def get_deepseek_response(message, user, context_messages=None):
     except Exception as e:
         # Print any exceptions that occur
         print(f"An error occurred while calling the DeepSeek API: {e}")
-        return "Désolé, une erreur s'est produite lors de la communication avec l'API."
+        return (f"Désolé, une erreur s'est produite lors de la communication avec l'API : {e}")
