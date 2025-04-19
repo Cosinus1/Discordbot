@@ -48,11 +48,11 @@ async def admin(ctx, action: str, target: str = None, value: int = None):
         await handle_single_target(ctx, action, target, value)
 
 async def set_context_limit(ctx, value):
-    if value<0:
-        await ctx.send(f{ctx.author.mention}, "You must select a positive value")
+    if value < 0:
+        await ctx.send(f"{ctx.author.mention}, You must select a positive value")
         return
     MESSAGE_CONTENT_LIMIT = value
-    await ctx.send(f{ctw.author.mention}, "Context Message limit set to : " + str(MESSAGE_CONTENT_LIMIT))
+    await ctx.send(f"{ctx.author.mention}, Context Message limit set to: {MESSAGE_CONTENT_LIMIT}")
     
 async def handle_rmitems(ctx):
     """Handle the rmitems action (reset all items and player inventories)."""
