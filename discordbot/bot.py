@@ -2,10 +2,10 @@ from config import bot, TOKEN
 from database import init_db
 from events import on_ready as on_ready_handler, on_message as on_message_handler, on_member_join as on_member_join_handler, on_voice_state_update as on_voice_state_update_handler
 from tasks import check_inactivity, shop_tasks
-from commands import user_commands, admin_commands
+from commands import user_commands, admin_commands, youtube_commands
 from commands.mmo_commands.combat import attack, pve, hp, health
-from commands.mmo_commands.inventory import inv, stats, stuff
-from commands.mmo_commands.shop import shop
+from commands.mmo_commands.inventory import inv, stats, equip, unequip, stuff, use
+from commands.mmo_commands.shop import shop, buy, sell
 from commands.mmo_commands.join import join
 
 # Initialize the database
@@ -42,6 +42,9 @@ bot.add_command(user_commands.bet)
 bot.add_command(user_commands.daily)
 bot.add_command(user_commands.send)
 bot.add_command(user_commands.roll)
+#Youtube Downloader Commands
+bot.add_command(youtube_commands.mp3)
+bot.add_command(youtube_commands.mp4)
 # Admin Commands
 bot.add_command(admin_commands.admin)
 bot.add_command(admin_commands.setallmoney)
