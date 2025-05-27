@@ -38,5 +38,83 @@
         "rarity": "legendary",
         "price": 500,
         "armor": 15
+    },
+    {
+        "id": 9,
+        "name": "Rusty Leather Boots of the Commoner",
+        "rarity": "common",
+        "price": 500,
+        "type": "feet",
+        "stats": {}
+    },
+    {
+        "id": 8,
+        "name": "Sturdy Reinforced Shield of Skill",
+        "rarity": "rare",
+        "price": 4000,
+        "type": "shield",
+        "stats": {}
+    },
+    {
+        "id": 7,
+        "name": "Mighty Crystal Armor of Power",
+        "rarity": "epic",
+        "price": 12000,
+        "type": "chest",
+        "stats": {}
+    },
+    {
+        "id": 6,
+        "name": "Divine Dragon Scale Armor of the Ancients",
+        "rarity": "legendary",
+        "price": 100000,
+        "type": "chest",
+        "stats": {}
+    },
+    {
+        "id": 10,
+        "name": "Health Potion",
+        "price": 50,
+        "type": "consumable",
+        "effect": 50
+    },
+    {
+        "id": 14,
+        "name": "Basic Rusty Sword of the Beginner",
+        "rarity": "common",
+        "price": 500,
+        "type": "weapon",
+        "stats": {}
+    },
+    {
+        "id": 13,
+        "name": "Reinforced Iron Axe of the Journeyman",
+        "rarity": "rare",
+        "price": 4000,
+        "type": "weapon",
+        "stats": {}
+    },
+    {
+        "id": 12,
+        "name": "Mighty Tower Shield of Brilliance",
+        "rarity": "epic",
+        "price": 12000,
+        "type": "shield",
+        "stats": {}
+    },
+    {
+        "id": 11,
+        "name": "Divine Crown of the Ancients of Immortality",
+        "rarity": "legendary",
+        "price": 100000,
+        "type": "helm",
+        "stats": {}
+    },
+    {
+        "id": 15,
+        "name": "Health Potion",
+        "price": 50,
+        "type": "consumable",
+        "effect": 50
     }
 ]

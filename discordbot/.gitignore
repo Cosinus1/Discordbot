@@ -2,7 +2,6 @@ nohup.out
 token.txt
 .spyproject/
 venv/
-user_data.db
 ssh_key
 ssh_key.pub
 Dockerfile.txt
