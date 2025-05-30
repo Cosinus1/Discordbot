@@ -46,33 +46,27 @@ class ItemFactory:
     @staticmethod
     def _generate_stats(item_type, rarity):
         """Generate random stats for an item based on its type and rarity."""
+        # Get the base stats from STAT_CONSTRAINTS based on rarity and item type
+        base_stats = STAT_CONSTRAINTS.get(rarity, {}).get(item_type, {})
+        VARIANCE_MODIFIER = 0
+        # Create a copy of the base stats to work with
         stats = {}
-        stat_budget = STAT_BUDGET.get(rarity, 0)
-        stat_constraints = STAT_CONSTRAINTS.get(item_type, {})
-
-        # Filter out powerful stats for non-epic/legendary items
-        if rarity not in ["epic", "legendary"]:
-            stat_constraints = {
-                stat: constraints for stat, constraints in stat_constraints.items()
-                if stat not in ["lifesteal", "parry_chance", "stunt_chance"]
-            }
-
-        # Distribute the stat budget randomly
-        remaining_budget = stat_budget
-        available_stats = list(stat_constraints.keys())
-
-        while remaining_budget > 0 and available_stats:
-            stat = random.choice(available_stats)
-            min_val = stat_constraints[stat]["min"]
-            max_val = stat_constraints[stat]["max"]
-
-            # Assign a random value within constraints, but don't exceed remaining budget
-            value = random.uniform(min_val, min(max_val, remaining_budget))
-            stats[stat] = round(value, 2)
-            remaining_budget -= value
-
-            # Remove the stat if it has reached its maximum value
-            if stats[stat] >= max_val:
-                available_stats.remove(stat)
-
+        
+        # Apply some randomness to each stat
+        for stat_name, base_value in base_stats.items():
+            # For percentage-based stats (those with values < 1)
+            if isinstance(base_value, float) and base_value < 1:
+                # Apply smaller variance for percentage values
+                variance = base_value * VARIANCE_MODIFIER
+                min_value = max(0, base_value - variance)
+                max_value = base_value + variance
+                stats[stat_name] = round(random.uniform(min_value, max_value), 2)
+            # For integer-based stats
+            else:
+                # Apply standard variance
+                variance = int(base_value * 0.2)  # 20% variance
+                min_value = max(1, base_value - variance)
+                max_value = base_value + variance
+                stats[stat_name] = random.randint(min_value, max_value)
+        
         return stats

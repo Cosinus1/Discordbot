@@ -4,6 +4,7 @@ from database import get_user_data, update_user_data, get_player_data, update_pl
 from datetime import datetime
 from config import DAILY_EXP_THRESHOLD, EXP_PAR_MINUTE_VOCAL
 from events.on_voice_state_update import user_join_times
+from events.on_message import MESSAGE_CONTENT_LIMIT
 from config import bot
 from classes.item_manager import item_manager
 from classes.shop_manager import shop_manager
@@ -20,7 +21,7 @@ async def admin(ctx, action: str, target: str = None, value: int = None):
     # Validate the action
     action = action.lower()
     valid_actions = [
-        "setlevel", "setmoney", "sethealth", "setexp", 
+        "setlevel", "setmoney", "sethealth", "setexp", "setctxlimit"
         "resetinventory", "revive", "kill", "additem", "removeitem", "resetstuff", "rmitems"
     ]
     if action not in valid_actions:
@@ -32,7 +33,9 @@ async def admin(ctx, action: str, target: str = None, value: int = None):
         # Special case: rmitems affects all players and the item_manager
         await handle_rmitems(ctx)
         return
-
+    if action == "setctxlimit":
+        await set_context_limit(ctx, value)
+        
     # For other actions, check if the target is valid
     if not target:
         await ctx.send(f"{ctx.author.mention}, you must specify a target (user or 'all').")
@@ -43,6 +46,35 @@ async def admin(ctx, action: str, target: str = None, value: int = None):
         await handle_all_targets(ctx, action, value)
     else:
         await handle_single_target(ctx, action, target, value)
+
+@commands.command()
+async def setcontextlimit(ctx, value: int = None):
+    """Admin command to set how many context messages the bot considers when responding."""
+    # Check if the user has the 'dev' role
+    if 'dev' not in [role.name.lower() for role in ctx.author.roles]:
+        await ctx.send(f"{ctx.author.mention}, you do not have permission to use this command.")
+        return
+    
+    # Import the variable from on_message module
+    from events.on_message import MESSAGE_CONTEXT_LIMIT
+    import sys
+    
+    # If no value is provided, display the current setting
+    if value is None:
+        await ctx.send(f"{ctx.author.mention}, current context limit is set to **{MESSAGE_CONTEXT_LIMIT}** messages.")
+        return
+    
+    # Validate the value
+    if value < 0:
+        await ctx.send(f"{ctx.author.mention}, context limit must be a non-negative number.")
+        return
+    
+    # Update the global variable in the on_message module
+    old_value = MESSAGE_CONTEXT_LIMIT
+    module = sys.modules['events.on_message']
+    module.MESSAGE_CONTEXT_LIMIT = value
+    
+    await ctx.send(f"{ctx.author.mention}, context limit changed from **{old_value}** to **{value}** messages.")
 
 async def handle_rmitems(ctx):
     """Handle the rmitems action (reset all items and player inventories)."""

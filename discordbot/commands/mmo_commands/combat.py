@@ -1,69 +1,41 @@
 import discord
+from discord import File
 from discord.ext import commands
-from database import get_player_data, get_user_data, update_player_data, update_user_data
-from utils.mmo_utils.monster_utils import get_monster
-from utils.mmo_utils.combat_utils import simulate_combat, calculate_damage
-import random
-import asyncio
+from database import get_player_data, update_player_data
+from classes.combat_ui import CombatView
+from classes.player_lifecycle import lifecycle_manager
+from utils.mmo_utils.monster_utils import get_monster, get_monster_base_name
+from utils.mmo_utils.combat_utils import calculate_damage
+from utils.mmo_utils.embed_utils import create_combat_embed, create_hp_embed
+import os
 
 @commands.command()
 async def pve(ctx, difficulty="easy"):
-    """Fight a randomly generated monster based on difficulty."""
-    # Validate difficulty input
-    valid_difficulties = ["easy", "medium", "hard", "hardcore"]
-    if difficulty.lower() not in valid_difficulties:
-        await ctx.send(f"Invalid difficulty. Choose from: {', '.join(valid_difficulties)}")
+    user_id = ctx.author.id
+    
+    # Check if player is dead using the lifecycle manager
+    if lifecycle_manager.is_player_dead(user_id):
+        time_left = lifecycle_manager.get_resurrection_time(user_id)
+        await ctx.send(f"{ctx.author.mention} You are currently dead and cannot enter combat. Resurrection in: {time_left}")
         return
     
-    player = get_player_data(ctx.author.id)
-    user = get_user_data(ctx.author.id)
-    if not player:
-        await ctx.send(f"{ctx.author.mention} You are not registered as a player. Use `!join` to create a player profile.")
-        return
-
-    if player.get("health", 100) <= 0:
-        await ctx.send(f"{ctx.author.mention} You are dead. Please wait 5 minutes to be reincarnated.")
-        return
-
-    # Get monster based on difficulty
-    monster = get_monster(difficulty.lower())
-    await ctx.send(f"{ctx.author.mention} You encountered a {monster['name']} ({monster['rarity'].title()})!")
-
-    # Simulate combat
-    combat_log, player["health"] = simulate_combat(player, monster)
-    player_wins = player["health"] > 0
-    for log in combat_log:
-        await ctx.send(log)
-        await asyncio.sleep(1)  # Add a delay for dramatic effect
-
-    if player_wins:
-        # Player wins: give rewards
-        rewards = monster["rewards"]
-        gold = rewards.get("gold", 0)
-        items = rewards.get("items", [])
-
-        user["money"] += gold
-        if items:
-            item = random.choice(items)
-            player["inventory"].append(item)
-            await ctx.send(f"{ctx.author.mention} You defeated the {monster['name']} and gained {gold} gold and a {item['name']}!")
-        else:
-            await ctx.send(f"{ctx.author.mention} You defeated the {monster['name']} and gained {gold} gold!")
-
-        update_player_data(ctx.author.id, health=player["health"], inventory=player["inventory"])
-        update_user_data(ctx.author.id, money=user["money"])
-    else:
-        # Player dies: set health to 0 and apply cooldown
-        player["health"] = 0
-        update_player_data(ctx.author.id, health=player["health"])
-        await ctx.send(f"{ctx.author.mention} You died. Please wait 5 minutes to be reincarnated.")
-
-        # Reincarnate after 5 minutes
-        await asyncio.sleep(300)  # 5 minutes
-        player["health"] = 100
-        update_player_data(ctx.author.id, health=player["health"])
-        await ctx.send(f"{ctx.author.mention} You have been reincarnated with full health!")
-
+    player = get_player_data(user_id)
+    monster = get_monster(difficulty)
+    embed = create_combat_embed(player, monster)
+    view = CombatView(player, monster)
+    
+    # Get the appropriate image for the monster
+    base_name = get_monster_base_name(monster["name"])
+    
+    # Try to find the image file
+    image_path = f"data/mmo/PNG/{base_name.lower()}_vecto.png"
+    if not os.path.exists(image_path):
+        # Use a default image if the specific one isn't found
+        image_path = "data/mmo/PNG/monster_default.png"
+    
+    file = File(image_path, filename=f"{base_name.lower()}_vecto.png")
+    await ctx.send(embed=embed, file=file, view=view)
+    
 @commands.command()
 async def attack(ctx, target: discord.Member):
     attacker = get_player_data(ctx.author.id)
@@ -88,28 +60,49 @@ async def attack(ctx, target: discord.Member):
         # Player dies: set health to 0 and apply cooldown
         defender["health"] = 0
         update_player_data(defender["user_id"], health=defender["health"])
-        await ctx.send(f"{target.mention} You died. Please wait 5 minutes to be reincarnated.")
         
-        # Reincarnate after 5 minutes
-        await asyncio.sleep(300)  # 5 minutes
-        defender["health"] = 100
-        update_player_data(defender["user_id"], health=defender["health"])
-        await ctx.send(f"{target.mention} You have been reincarnated with full health!")
+        # Use the lifecycle manager to handle player death
+        lifecycle_manager.mark_player_dead(defender["user_id"])
+        await ctx.send(f"{target.mention} You died. Please wait {lifecycle_manager.resurrection_time_minutes} minutes to be reincarnated.")
+        
+        # Define callback for resurrection
+        def update_health_callback(user_id):
+            defender = get_player_data(user_id)
+            if defender:
+                defender["health"] = defender.get("max_health", 100)
+                update_player_data(user_id, health=defender["health"])
+        
+        # Schedule resurrection
+        await lifecycle_manager.schedule_resurrection(
+            ctx.bot, 
+            defender["user_id"], 
+            target, 
+            update_health_callback
+        )
 
 @commands.command()
 async def hp(ctx):
+    """Display the player's current health using a health bar."""
     player = get_player_data(ctx.author.id)
-    if player:
-        current_hp = player["health"]
-        await ctx.send(f"{ctx.author.mention}, tu as actuellement {current_hp} HP.")
-    else:
-        await ctx.send(f"{ctx.author.mention}, aucune donnée trouvée pour toi.")
+    if not player:
+        await ctx.send("You are not registered as a player. (type `!join` to play)")
+        return
+
+    embed = create_hp_embed(player, ctx.author.display_name)
+    await ctx.send(embed=embed)
 
 @commands.command()
 async def health(ctx):
-    player = get_player_data(ctx.author.id)
-    if player:
-        current_hp = player["health"]
-        await ctx.send(f"{ctx.author.mention}, tu as actuellement {current_hp} HP.")
+    """Display the player's current health using a health bar."""
+    await hp(ctx)
+
+@commands.command()
+async def resurrection_time(ctx):
+    """Check how much time is left until resurrection if you're dead."""
+    user_id = ctx.author.id
+    
+    if lifecycle_manager.is_player_dead(user_id):
+        time_left = lifecycle_manager.get_resurrection_time(user_id)
+        await ctx.send(f"{ctx.author.mention} You are currently dead. Resurrection in: {time_left}")
     else:
-        await ctx.send(f"{ctx.author.mention}, aucune donnée trouvée pour toi.")
+        await ctx.send(f"{ctx.author.mention} You are not dead.")

@@ -2,7 +2,7 @@ from config import bot, TOKEN
 from database import init_db
 from events import on_ready as on_ready_handler, on_message as on_message_handler, on_member_join as on_member_join_handler, on_voice_state_update as on_voice_state_update_handler
 from tasks import check_inactivity, shop_tasks
-from commands import user_commands, admin_commands
+from commands import user_commands, admin_commands, youtube_commands
 from commands.mmo_commands.combat import attack, pve, hp, health
 from commands.mmo_commands.inventory import inv, stats, equip, unequip, stuff, use
 from commands.mmo_commands.shop import shop, buy, sell
@@ -17,8 +17,8 @@ async def on_ready():
     await on_ready_handler.start(bot)  # Pass bot as an argument
     
     # Start background tasks after the bot is ready
-    check_inactivity.start()
-    shop_tasks.refresh_shop_task.start()
+    await check_inactivity.start()
+    await shop_tasks.refresh_shop_task.start()
 
 
 @bot.event
@@ -42,9 +42,13 @@ bot.add_command(user_commands.bet)
 bot.add_command(user_commands.daily)
 bot.add_command(user_commands.send)
 bot.add_command(user_commands.roll)
+#Youtube Downloader Commands
+bot.add_command(youtube_commands.mp3)
+bot.add_command(youtube_commands.mp4)
 # Admin Commands
 bot.add_command(admin_commands.admin)
 bot.add_command(admin_commands.setallmoney)
+bot.add_command(admin_commands.setcontextlimit)
 bot.add_command(admin_commands.bye)
 # MMO Commands
 bot.add_command(join)
@@ -54,13 +58,8 @@ bot.add_command(hp)
 bot.add_command(health)
 bot.add_command(inv)
 bot.add_command(stats)
-bot.add_command(equip)
-bot.add_command(unequip)
-bot.add_command(use)
 bot.add_command(stuff)
 bot.add_command(shop)
-bot.add_command(buy)
-bot.add_command(sell)
 
 # Run the bot
 bot.run(TOKEN)

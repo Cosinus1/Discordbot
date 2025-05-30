@@ -11,4 +11,4 @@ async def check_level_upgrade(member):
 
     if new_level > user["level"]:
         update_user_data(member.id, level=new_level)
-        await send_to_bot_channel(member.guild, f"🎉 {member.mention} a atteint le niveau **{new_level}** ! Félicitations ! 🎉")
+        await send_to_bot_channel(member.guild, f"🎉 {member} a atteint le niveau **{new_level}** ! Félicitations ! 🎉")

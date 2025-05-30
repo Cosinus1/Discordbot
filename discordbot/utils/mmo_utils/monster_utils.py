@@ -6,11 +6,7 @@ RARITY_MODIFIERS = {
     "common": {
         "prefixes": ["Weak", "Small", "Pathetic"],
         "suffixes": ["of the Forest", "of the Swamp"],
-        "base_names": ["Goblin", "Slime", "Rat"],
-        "health_range": (40, 60),
-        "attack_range": (8, 12),
-        "armor_range": (4, 6),
-        "gold_range": (5, 15),
+        "base_names": ["Goblin", "Slime"],
         "item_templates": [
             {"name": "Rusty Sword", "type": "weapon"},
             {"name": "Cloth Armor", "type": "chest"},
@@ -22,11 +18,7 @@ RARITY_MODIFIERS = {
     "rare": {
         "prefixes": ["Strong", "Large", "Fierce"],
         "suffixes": ["of the Mountains", "of the Caves"],
-        "base_names": ["Orc", "Troll", "Wolf"],
-        "health_range": (80, 120),
-        "attack_range": (15, 25),
-        "armor_range": (8, 12),
-        "gold_range": (40, 60),
+        "base_names": ["Orc", "Troll"],
         "item_templates": [
             {"name": "Iron Axe", "type": "weapon"},
             {"name": "Chainmail Armor", "type": "chest"},
@@ -38,11 +30,7 @@ RARITY_MODIFIERS = {
     "epic": {
         "prefixes": ["Mighty", "Giant", "Terrifying"],
         "suffixes": ["of the Abyss", "of the Depths"],
-        "base_names": ["Demon", "Elemental", "Giant"],
-        "health_range": (400, 600),
-        "attack_range": (30, 50),
-        "armor_range": (20, 30),
-        "gold_range": (300, 700),
+        "base_names": ["Demon", "Elemental"],
         "item_templates": [
             {"name": "Demonic Wand", "type": "weapon"},
             {"name": "Crystal Armor", "type": "chest"},
@@ -52,13 +40,9 @@ RARITY_MODIFIERS = {
         ]
     },
     "legendary": {
-        "prefixes": ["Ancient", "Colossal", "Demonic"],
+        "prefixes": ["Ancient", "Colossal"],
         "suffixes": ["of the Void", "of the Apocalypse"],
-        "base_names": ["Dragon", "Phoenix", "Leviathan"],
-        "health_range": (1000, 1500),
-        "attack_range": (80, 120),
-        "armor_range": (50, 70),
-        "gold_range": (5000, 7000),
+        "base_names": ["Demon King" ],
         "item_templates": [
             {"name": "Obsidian Tooth", "type": "weapon"},
             {"name": "Dragon Scale Armor", "type": "chest"},
@@ -69,6 +53,32 @@ RARITY_MODIFIERS = {
     }
 }
 
+STATS_MODIFIERS= {
+    "common": {
+        "health_range": [80, 120],
+        "attack_range": [8, 12],
+        "armor_range": [0, 2],
+        "gold_range": (5, 15),
+    },
+    "rare": {
+        "health_range": [150, 200],
+        "attack_range": [12, 18],
+        "armor_range": [2, 5],
+        "gold_range": (50, 150),
+    },
+    "epic": {
+        "health_range": [250, 350],
+        "attack_range": [18, 25],
+        "armor_range": [5, 10],
+        "gold_range": (500, 1500)
+    },
+    "legendary": {
+        "health_range": [400, 600],
+        "attack_range": [25, 40],
+        "armor_range": [10, 20],
+        "gold_range": (5000, 15000),
+    }
+}
 def generate_monster_name(rarity):
     """Generate a cool name for a monster based on its rarity."""
     modifiers = RARITY_MODIFIERS.get(rarity, {})
@@ -84,13 +94,14 @@ def generate_monster_name(rarity):
 
 def generate_monster_stats(rarity):
     """Generate stats for a monster based on its rarity."""
-    modifiers = RARITY_MODIFIERS.get(rarity, {})
+    modifiers = STATS_MODIFIERS.get(rarity, {})
     health = random.randint(*modifiers.get("health_range", (50, 100)))
+    max_health = health
     attack = random.randint(*modifiers.get("attack_range", (10, 20)))
     armor = random.randint(*modifiers.get("armor_range", (5, 10)))
     gold = random.randint(*modifiers.get("gold_range", (10, 50)))
     
-    return health, attack, armor, gold
+    return health, max_health, attack, armor, gold
 
 def generate_monster_rewards(rarity):
     """Generate rewards for a monster based on its rarity."""
@@ -128,6 +139,33 @@ def generate_monster_rewards(rarity):
         "items": items
     }
 
+def get_monster_base_name(monster_name):
+    """
+    Extract the base name from a monster's full name.
+    E.g., "Weak Goblin of the Forest" -> "Goblin"
+    """
+    # Split the name into words
+    words = monster_name.split()
+    
+    # Get all possible base names from monster_utils
+    from utils.mmo_utils.monster_utils import RARITY_MODIFIERS
+    all_base_names = []
+    for rarity in RARITY_MODIFIERS:
+        all_base_names.extend(RARITY_MODIFIERS[rarity]["base_names"])
+    
+    # Find the first word that matches a base name
+    for word in words:
+        if word in all_base_names:
+            return word
+    
+    # If no base name is found, return the middle word as a fallback
+    if len(words) >= 3:
+        return words[1]  # Middle word
+    elif len(words) == 2:
+        return words[1]  # Second word
+    else:
+        return words[0]  # Only word
+
 def get_monster(difficulty="easy"):
     """Get a random monster with generated stats, name, and rewards based on difficulty."""
     # Map difficulty to base rarity
@@ -149,12 +187,14 @@ def get_monster(difficulty="easy"):
             base_rarity = rarity_tiers[current_index + 1]
     
     # Generate monster based on rarity
+    monster_stats = generate_monster_stats(base_rarity)
     monster = {
         "name": generate_monster_name(base_rarity),
         "NPC": True,
-        "health": generate_monster_stats(base_rarity)[0],
-        "attack": generate_monster_stats(base_rarity)[1],
-        "armor": generate_monster_stats(base_rarity)[2],
+        "health": monster_stats[0],
+        "max_health": monster_stats[1],
+        "attack": monster_stats[2],
+        "armor": monster_stats[3],
         "rarity": base_rarity,
         "rewards": generate_monster_rewards(base_rarity)
     }
